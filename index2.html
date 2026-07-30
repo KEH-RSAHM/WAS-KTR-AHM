@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Dokumentasi KTR RSJD - Interaktif</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        playfair: ['Playfair Display', 'serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #F6F9F7; }
+        @media print {
+            @page { size: 8in 13.5in; margin: 10mm; }
+            .no-print { display: none !important; }
+            body { background: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print-area { box-shadow: none !important; border: none !important; margin: 0 !important; padding: 0 !important; }
+            input, select, textarea { border: none !important; background: transparent !important; appearance: none; -webkit-appearance: none; }
+            input::placeholder, textarea::placeholder { color: transparent; }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const { useState } = React;
+
+        const Icon = ({ path, ...props }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>
+                {path}
+            </svg>
+        );
+
+        const icBuilding = <><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></>;
+        const icCalendar = <><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></>;
+        const icChartCol = <><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></>;
+        const icClipCheck = <><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></>;
+        const icDownload = <><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></>;
+        const icFileChart = <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></>;
+        const icFileText = <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></>;
+        const icMapPin = <><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></>;
+        const icShield = <><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></>;
+        const icAlert = <><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></>;
+
+        const defaultChecklist = [
+            {no:1,sarana:"Papan Tanda KTR Utama (di pintu masuk)",standar:"Minimal 60x90cm, terlihat jelas"},
+            {no:2,sarana:"Stiker Dilarang Merokok",standar:"Tiap ruangan, pintu, jendela"},
+            {no:3,sarana:"Spanduk KTR",standar:"Area strategis, tidak robek"},
+            {no:4,sarana:"Poster Bahaya Rokok",standar:"Area tunggu, edukasi"},
+            {no:5,sarana:"Leaflet / Brosur KTR",standar:"Tersedia di resepsionis / pojok KIE"},
+            {no:6,sarana:"Pengumuman Audio KTR",standar:"Diputar rutin via pengeras suara"},
+            {no:7,sarana:"Tidak tersedia asbak / tempat puntung",standar:"Nihil di seluruh kawasan"},
+            {no:8,sarana:"Tidak ada iklan/promosi rokok",standar:"Nihil baliho, poster, penjualan"},
+            {no:9,sarana:"Kotak Pengaduan / Hotline KTR",standar:"Nomor aktif & tercatat"},
+            {no:10,sarana:"Rompi / ID Card Tim Penegak KTR",standar:"Dipakai saat patroli"}
+        ];
+
+        function App() {
+            const [activeTab, setActiveTab] = useState("harian");
+            const [subTab, setSubTab] = useState("checklist");
+
+            const [locations, setLocations] = useState([
+                "Lobby Utama", "Poliklinik Terpadu", "IGD", "R. Inap Flamboyan",
+                "R. Inap Kenanga", "Kantin / Dapur Gizi", "Area Parkir",
+                "Musholla", "Toilet Umum", "Taman / Selasar", "Apotek / Farmasi", "Kantor Manajemen"
+            ]);
+            const [newLoc, setNewLoc] = useState("");
+
+            const addLocation = () => {
+                if(newLoc.trim() && !locations.includes(newLoc.trim())) {
+                    setLocations([...locations, newLoc.trim()]);
+                    setNewLoc("");
+                }
+            };
+
+            const removeLocation = (loc) => {
+                setLocations(locations.filter(l => l !== loc));
+            };
+
+            const TabBtn = ({ id, label, icon }) => (
+                <button 
+                    onClick={() => setActiveTab(id)} 
+                    className={`flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold rounded-lg border transition-all whitespace-nowrap ${activeTab === id ? 'bg-[#1E40AF] text-white border-[#1E40AF] shadow-sm' : 'bg-white text-[#1E40AF] border-[#BFDBFE] hover:bg-[#EFF6FF]'}`}
+                >
+                    <Icon path={icon} className="w-4 h-4" /> {label}
+                </button>
+            );
+
+            return (
+                <div className="min-h-screen">
+                    <div className="bg-white border-b border-[#E2EDE6] print-area">
+                        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-4">
+                            <img src="KOP ATMA.png" alt="Kop RSJD Atma Husada Mahakam" className="w-full h-auto object-contain" />
+                        </div>
+                    </div>
+
+                    <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-6 md:py-8">
+                        <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-4 mb-6 no-print">
+                            <div>
+                                <h1 className="text-[26px] md:text-[32px] font-bold tracking-tight text-[#1E40AF] leading-[1.1] font-playfair">Sistem Dokumentasi KTR</h1>
+                                <p className="text-[13px] md:text-[14px] text-black mt-2 max-w-[620px] leading-relaxed">Paket format resmi pengawasan Kawasan Tanpa Rokok (Interaktif). Anda dapat mengisi langsung data pada form dan mencetak dokumen ini.</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <div className="hidden md:flex items-center gap-2 text-[11px] text-black bg-white border border-slate-200 rounded-full px-3 py-1.5">
+                                    <Icon path={icShield} className="w-3.5 h-3.5 text-[#1E40AF]" /> Interaktif & Siap Cetak
+                                </div>
+                                <button onClick={() => window.print()} className="bg-[#1E40AF] text-white px-4 py-2 rounded-lg text-sm font-semibold hover:bg-opacity-90 transition-all flex gap-2 items-center">
+                                    Cetak Form
+                                </button>
+                            </div>
+                        </div>
+
+                        <div className="no-print flex gap-2 overflow-x-auto pb-3 -mx-1 px-1">
+                            <TabBtn id="harian" label="1. Kendali Harian" icon={icClipCheck} />
+                            <TabBtn id="bulanan" label="2. Kendali Bulanan" icon={icCalendar} />
+                            <TabBtn id="rekap" label="3. Rekapitulasi" icon={icChartCol} />
+                            <TabBtn id="laporan" label="4. Laporan Bulanan" icon={icFileChart} />
+                            <TabBtn id="pendukung" label="5. Pendukung" icon={icFileText} />
+                        </div>
+
+                        <div className="bg-white rounded-[16px] border border-[#E2EDE6] shadow-sm overflow-hidden print-area">
+                            <div className="flex flex-wrap items-center justify-between gap-3 px-5 md:px-7 py-4 border-b border-[#DBEAFE] bg-[#FFFFFF] no-print">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-9 h-9 rounded-lg bg-[#1E40AF] text-white flex items-center justify-center">
+                                        <Icon path={
+                                            activeTab === "harian" ? icClipCheck : 
+                                            activeTab === "bulanan" ? icCalendar : 
+                                            activeTab === "rekap" ? icChartCol : 
+                                            activeTab === "laporan" ? icFileChart : icFileText
+                                        } className="w-4 h-4" />
+                                    </div>
+                                    <div>
+                                        <div className="text-[13px] font-bold text-[#1E40AF] leading-none">
+                                            {activeTab === "harian" && "FORM-KTR-01 • Kendali Harian Patroli KTR"}
+                                            {activeTab === "bulanan" && "FORM-KTR-02 • Kendali Bulanan Patroli KTR"}
+                                            {activeTab === "rekap" && "FORM-KTR-03 • Rekapitulasi Bulanan per Area"}
+                                            {activeTab === "laporan" && "FORM-KTR-04 • Laporan Bulanan KTR"}
+                                            {activeTab === "pendukung" && "FORM-KTR-05 • Dokumen Pendukung KTR"}
+                                        </div>
+                                        <div className="text-[11px] text-black mt-1">
+                                            Kertas A4 • Orientasi {activeTab === "harian" || activeTab === "bulanan" ? "Landscape" : "Portrait"} • Margin 2cm
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="px-5 md:px-7 py-6 md:py-8">
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-[11px] md:text-[12px]">
+                                    <div className="border border-slate-200 rounded-lg px-3 py-2.5 bg-[#FFFFFF]">
+                                        <div className="text-[10px] uppercase tracking-widest text-black font-semibold mb-1">Tanggal</div>
+                                        <input type="date" className="w-full bg-transparent border-b border-slate-300 pb-1 font-semibold text-black outline-none focus:border-[#1E40AF]" />
+                                    </div>
+                                    <div className="border border-slate-200 rounded-lg px-3 py-2.5 bg-[#FFFFFF]">
+                                        <div className="text-[10px] uppercase tracking-widest text-black font-semibold mb-1">Shift / Waktu</div>
+                                        <div className="flex gap-2">
+                                            <select className="bg-transparent border-b border-slate-300 pb-1 font-semibold text-black outline-none focus:border-[#1E40AF] w-full">
+                                                <option>Pagi</option>
+                                                <option>Siang</option>
+                                                <option>Malam</option>
+                                            </select>
+                                            <input type="time" className="bg-transparent border-b border-slate-300 pb-1 font-semibold text-black outline-none focus:border-[#1E40AF] w-full" />
+                                        </div>
+                                    </div>
+                                    <div className="border border-slate-200 rounded-lg px-3 py-2.5 bg-[#FFFFFF]">
+                                        <div className="text-[10px] uppercase tracking-widest text-black font-semibold mb-1">Petugas KTR</div>
+                                        <div className="flex flex-col gap-1">
+                                            <input type="text" placeholder="1. Nama Petugas" className="w-full bg-transparent border-b border-slate-300 pb-0.5 font-semibold text-black outline-none focus:border-[#1E40AF] text-[11px]" />
+                                            <input type="text" placeholder="2. Nama Petugas" className="w-full bg-transparent border-b border-slate-300 pb-0.5 font-semibold text-black outline-none focus:border-[#1E40AF] text-[11px]" />
+                                        </div>
+                                    </div>
+                                    <div className="border border-slate-200 rounded-lg px-3 py-2.5 bg-[#FFFFFF]">
+                                        <div className="text-[10px] uppercase tracking-widest text-black font-semibold">Paraf Ka. Tim KTR</div>
+                                        <div className="mt-4 border-b border-dotted border-slate-400 h-6"></div>
+                                    </div>
+                                </div>
+
+                                {activeTab === "harian" && (
+                                    <div>
+                                        <div className="flex flex-wrap items-center gap-2 mb-3">
+                                            <h2 className="text-[14px] font-bold text-[#1E40AF]">Kendali Harian Patroli KTR</h2>
+                                            <span className="text-[10px] px-2 py-0.5 rounded-full bg-[#DBEAFE] text-[#1E40AF] font-semibold">Wajib diisi setiap patroli • Minimal 3x sehari</span>
+                                        </div>
+                                        <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                                            <table className="w-full border-collapse text-[11px] md:text-[11.5px] min-w-[980px]">
+                                                <thead>
+                                                    <tr className="bg-[#1E40AF] text-white">
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[36px]">No</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[100px]">Waktu</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[160px] text-left">Lokasi / Area</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[80px]">Merokok?</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[80px]">Asbak?</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[80px]">Iklan?</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[60px]">Pelanggar</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[160px] text-left">Tindak Lanjut</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 font-semibold w-[120px] text-left">Nama Petugas</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {locations.map((loc, i) => (
+                                                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-[#FFFFFF]"}>
+                                                            <td className="border border-slate-200 px-2 py-2 text-center">{i + 1}</td>
+                                                            <td className="border border-slate-200 px-1 py-1 text-center">
+                                                                <input type="time" className="w-full bg-white border border-slate-300 rounded px-1 py-1" />
+                                                            </td>
+                                                            <td className="border border-slate-200 px-2 py-2">
+                                                                <div className="flex justify-between items-center w-full">
+                                                                    <span>{loc}</span>
+                                                                    <button onClick={() => removeLocation(loc)} className="text-red-400 hover:text-red-600 ml-2 no-print">×</button>
+                                                                </div>
+                                                            </td>
+                                                            <td className="border border-slate-200 px-1 py-1 text-center">
+                                                                <select className="w-full bg-white border border-slate-300 rounded px-1 py-1"><option>Tidak</option><option>Ya</option></select>
+                                                            </td>
+                                                            <td className="border border-slate-200 px-1 py-1 text-center">
+                                                                <select className="w-full bg-white border border-slate-300 rounded px-1 py-1"><option>Tidak</option><option>Ya</option></select>
+                                                            </td>
+                                                            <td className="border border-slate-200 px-1 py-1 text-center">
+                                                                <select className="w-full bg-white border border-slate-300 rounded px-1 py-1"><option>Tidak</option><option>Ya</option></select>
+                                                            </td>
+                                                            <td className="border border-slate-200 px-1 py-1 text-center">
+                                                                <input type="number" min="0" defaultValue="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" />
+                                                            </td>
+                                                            <td className="border border-slate-200 px-1 py-1">
+                                                                <input type="text" placeholder="Tindak lanjut..." className="w-full bg-white border border-slate-300 rounded px-1 py-1" />
+                                                            </td>
+                                                            <td className="border border-slate-200 px-1 py-1">
+                                                                <input type="text" placeholder="Nama..." className="w-full bg-white border border-slate-300 rounded px-1 py-1" />
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    <tr className="bg-slate-50 no-print">
+                                                        <td className="border border-slate-200 px-2 py-2 text-center text-black font-bold">+</td>
+                                                        <td colSpan="8" className="border border-slate-200 px-2 py-2">
+                                                            <div className="flex gap-2 max-w-sm">
+                                                                <input type="text" value={newLoc} onChange={(e)=>setNewLoc(e.target.value)} placeholder="Ketik area/lokasi baru..." className="flex-1 border border-slate-300 rounded px-2 py-1 bg-white" />
+                                                                <button onClick={addLocation} className="bg-[#1E40AF] text-white px-3 py-1 rounded hover:bg-opacity-90 font-semibold">Tambah Lokasi</button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === "bulanan" && (
+                                    <div>
+                                        <h2 className="text-[14px] font-bold text-[#1E40AF] mb-3">Kendali Bulanan - Rekap Patroli & Pelanggaran</h2>
+                                        <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                                            <table className="w-full border-collapse text-[11px] min-w-[860px]">
+                                                <thead>
+                                                    <tr className="bg-[#1E40AF] text-white">
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Tgl</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Total Patroli</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Total Pelanggaran</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Karyawan</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Pengunjung</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Pasien/Klg</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5 text-left">Lokasi Terbanyak</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-2.5">Petugas</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {Array.from({length:31}).map((_, i) => (
+                                                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-[#FFFFFF]"}>
+                                                            <td className="border border-slate-200 px-2 py-1 text-center font-medium">{i+1}</td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="text" className="w-full bg-white border border-slate-300 rounded px-1 py-1" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="text" className="w-full bg-white border border-slate-300 rounded px-1 py-1" /></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === "rekap" && (
+                                    <div>
+                                        <h2 className="text-[14px] font-bold text-[#1E40AF] mb-1">Rekapitulasi Bulanan Per Area & Trend</h2>
+                                        <div className="flex items-center gap-2 mb-3 text-[11px] text-black">
+                                            Bulan: <input type="month" className="border border-slate-300 rounded px-2 py-1 bg-white outline-none" />
+                                        </div>
+                                        <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                                            <table className="w-full border-collapse text-[11px] min-w-[780px]">
+                                                <thead>
+                                                    <tr className="bg-[#1E40AF] text-white">
+                                                        <th rowSpan={2} className="border border-[#1E40AF] px-3 py-2.5 text-left">Area / Lokasi</th>
+                                                        <th colSpan={4} className="border border-[#1E40AF] px-2 py-1.5 border-b-0">Minggu Ke- (Total Pelanggar)</th>
+                                                        <th rowSpan={2} className="border border-[#1E40AF] px-2 py-2.5">Total Bulan Ini</th>
+                                                        <th rowSpan={2} className="border border-[#1E40AF] px-2 py-2.5">Bulan Lalu</th>
+                                                    </tr>
+                                                    <tr className="bg-[#1E40AF] text-white">
+                                                        <th className="border border-[#1E40AF] px-2 py-1.5 border-t-0">1</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-1.5 border-t-0">2</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-1.5 border-t-0">3</th>
+                                                        <th className="border border-[#1E40AF] px-2 py-1.5 border-t-0">4</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {locations.map((loc, i) => (
+                                                        <tr key={i} className={i % 2 === 0 ? "bg-white" : "bg-[#FFFFFF]"}>
+                                                            <td className="border border-slate-200 px-3 py-2 font-medium flex items-center gap-1.5"><Icon path={icMapPin} className="w-3 h-3 text-[#1E40AF]"/> {loc}</td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center font-bold" /></td>
+                                                            <td className="border border-slate-200 px-1 py-1"><input type="number" min="0" className="w-full bg-white border border-slate-300 rounded px-1 py-1 text-center" /></td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === "laporan" && (
+                                    <div className="max-w-[900px] mx-auto">
+                                        <div className="text-center border-b border-slate-200 pb-4 mb-5">
+                                            <div className="text-[14px] font-bold tracking-wide text-[#1E40AF]">LAPORAN BULANAN PELAKSANAAN KTR</div>
+                                            <div className="flex items-center justify-center gap-2 mt-2 text-[12px] text-black">
+                                                Bulan: <input type="month" className="border-b border-slate-400 bg-transparent outline-none pb-1" />
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="space-y-4 text-[12px]">
+                                            <section className="border border-slate-200 rounded-lg p-3 bg-white">
+                                                <h3 className="font-bold text-[#1E40AF] mb-2">I. RINGKASAN PELAKSANAAN</h3>
+                                                <textarea className="w-full h-24 border border-slate-300 rounded p-2 outline-none focus:border-[#1E40AF]" placeholder="Ketik ringkasan pelaksanaan bulan ini di sini..."></textarea>
+                                            </section>
+
+                                            <div className="grid md:grid-cols-2 gap-4">
+                                                <section className="border border-slate-200 rounded-lg p-3 bg-white">
+                                                    <h3 className="font-bold text-[#1E40AF] mb-2">II. KENDALA & SOLUSI</h3>
+                                                    <textarea className="w-full h-32 border border-slate-300 rounded p-2 outline-none focus:border-[#1E40AF]" placeholder="1. Kendala: ...&#10;Solusi: ..."></textarea>
+                                                </section>
+                                                <section className="border border-slate-200 rounded-lg p-3 bg-[#EFF6FF]">
+                                                    <h3 className="font-bold text-[#1E40AF] mb-2">III. REKOMENDASI BULAN DEPAN</h3>
+                                                    <textarea className="w-full h-32 border border-slate-300 rounded p-2 outline-none focus:border-[#1E40AF] bg-white" placeholder="Rencana tindak lanjut dan rekomendasi..."></textarea>
+                                                </section>
+                                            </div>
+                                            
+                                            <div className="grid grid-cols-3 gap-6 pt-10 text-[11px] text-center">
+                                                <div>
+                                                    <div className="h-16"></div>
+                                                    <div className="border-t border-slate-400 pt-1">
+                                                        <input type="text" placeholder="Nama Pelapor" className="text-center w-full bg-transparent outline-none" /><br/>
+                                                        Tim KTR
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="h-16"></div>
+                                                    <div className="border-t border-slate-400 pt-1">
+                                                        <input type="text" placeholder="Nama Mengetahui" className="text-center w-full bg-transparent outline-none" /><br/>
+                                                        Kabid Penunjang Medik
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <div className="h-16"></div>
+                                                    <div className="border-t border-slate-400 pt-1">
+                                                        <input type="text" placeholder="Nama Direktur" className="text-center w-full bg-transparent outline-none font-bold" /><br/>
+                                                        Direktur RSJD
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {activeTab === "pendukung" && (
+                                    <div>
+                                        <div className="flex gap-2 mb-5 no-print">
+                                            {["checklist", "ba", "teguran"].map((st) => (
+                                                <button 
+                                                    key={st} 
+                                                    onClick={() => setSubTab(st)} 
+                                                    className={`px-4 py-2 rounded-lg text-[12px] font-semibold border ${subTab === st ? 'bg-[#1E40AF] text-white border-[#1E40AF]' : 'bg-white text-black border-slate-200'}`}
+                                                >
+                                                    {st === "checklist" ? "Checklist Sarana" : st === "ba" ? "Berita Acara" : "Surat Teguran"}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        {subTab === "checklist" && (
+                                            <div>
+                                                <h2 className="text-[14px] font-bold text-[#1E40AF] mb-3">Checklist Kelengkapan Sarana KTR</h2>
+                                                <div className="overflow-x-auto border border-slate-200 rounded-xl">
+                                                    <table className="w-full border-collapse text-[11px] min-w-[700px]">
+                                                        <thead>
+                                                            <tr className="bg-[#1E40AF] text-white">
+                                                                <th className="border border-[#1E40AF] px-2 py-2 w-10">No</th>
+                                                                <th className="border border-[#1E40AF] px-3 py-2 text-left">Sarana KTR</th>
+                                                                <th className="border border-[#1E40AF] px-2 py-2 text-left">Standar</th>
+                                                                <th className="border border-[#1E40AF] px-2 py-2 w-24">Tersedia?</th>
+                                                                <th className="border border-[#1E40AF] px-2 py-2 w-24">Kondisi</th>
+                                                                <th className="border border-[#1E40AF] px-3 py-2 text-left">Tindak Lanjut / Keterangan</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            {defaultChecklist.map((item) => (
+                                                                <tr key={item.no} className="bg-white">
+                                                                    <td className="border border-slate-200 px-2 py-2.5 text-center">{item.no}</td>
+                                                                    <td className="border border-slate-200 px-3 py-2.5 font-medium">{item.sarana}</td>
+                                                                    <td className="border border-slate-200 px-2 py-2.5 text-[10px] text-black">{item.standar}</td>
+                                                                    <td className="border border-slate-200 px-2 py-2.5 text-center">
+                                                                        <select className="border border-slate-300 rounded px-1 py-1 w-full"><option>Ya</option><option>Tidak</option></select>
+                                                                    </td>
+                                                                    <td className="border border-slate-200 px-2 py-2.5 text-center">
+                                                                        <select className="border border-slate-300 rounded px-1 py-1 w-full"><option>Baik</option><option>Rusak</option></select>
+                                                                    </td>
+                                                                    <td className="border border-slate-200 px-3 py-2.5">
+                                                                        <input type="text" placeholder="Catatan..." className="w-full border border-slate-300 rounded px-2 py-1" />
+                                                                    </td>
+                                                                </tr>
+                                                            ))}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {subTab === "ba" && (
+                                            <div className="max-w-[800px] mx-auto border border-slate-300 rounded-xl p-6 md:p-8 bg-[#FFFFFE]">
+                                                <div className="text-center mb-6">
+                                                    <div className="text-[14px] font-bold tracking-wide">BERITA ACARA PELANGGARAN KTR</div>
+                                                    <div className="flex items-center justify-center gap-2 text-[12px] mt-2">
+                                                        Nomor: BA-KTR / <input type="text" className="border-b border-slate-400 bg-transparent w-32 text-center" /> / 20__
+                                                    </div>
+                                                </div>
+                                                <div className="text-[12px] space-y-4">
+                                                    <p>Pada hari ini, tanggal <input type="date" className="border-b border-slate-400 bg-transparent" /> bertempat di RSJD Atma Husada Mahakam, kami Tim Penegakan KTR:</p>
+                                                    
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>1. Nama: <input type="text" className="border-b border-slate-400 bg-transparent w-full mt-1" /></div>
+                                                        <div>Jabatan: <input type="text" className="border-b border-slate-400 bg-transparent w-full mt-1" /></div>
+                                                        <div>2. Nama: <input type="text" className="border-b border-slate-400 bg-transparent w-full mt-1" /></div>
+                                                        <div>Jabatan: <input type="text" className="border-b border-slate-400 bg-transparent w-full mt-1" /></div>
+                                                    </div>
+
+                                                    <p>Telah menemukan pelanggaran KTR yang dilakukan oleh:</p>
+                                                    <div className="border border-slate-200 rounded p-4 space-y-3">
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="w-32">Nama Pelanggar</div>: <input type="text" className="border-b border-slate-400 bg-transparent flex-1" />
+                                                        </div>
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="w-32">Status</div>: 
+                                                            <select className="border border-slate-300 rounded px-2 py-1">
+                                                                <option>Karyawan</option><option>Pengunjung</option><option>Pasien/Keluarga</option>
+                                                            </select>
+                                                        </div>
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="w-32">Uraian Pelanggaran</div>: <input type="text" className="border-b border-slate-400 bg-transparent flex-1" placeholder="Membawa asbak / merokok di area..." />
+                                                        </div>
+                                                        <div className="flex gap-4 items-center">
+                                                            <div className="w-32">Tindak Lanjut</div>: <input type="text" className="border-b border-slate-400 bg-transparent flex-1" placeholder="Edukasi dan teguran lisan..." />
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-10 text-center">
+                                                        <div>
+                                                            <div className="h-16"></div>
+                                                            <input type="text" placeholder="Nama Pelanggar" className="text-center w-full bg-transparent border-t border-slate-400 pt-1 outline-none" />
+                                                            <div className="text-[10px]">Pelanggar</div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="h-16"></div>
+                                                            <input type="text" placeholder="Nama Petugas 1" className="text-center w-full bg-transparent border-t border-slate-400 pt-1 outline-none" />
+                                                            <div className="text-[10px]">Petugas KTR 1</div>
+                                                        </div>
+                                                        <div>
+                                                            <div className="h-16"></div>
+                                                            <input type="text" placeholder="Nama Petugas 2" className="text-center w-full bg-transparent border-t border-slate-400 pt-1 outline-none" />
+                                                            <div className="text-[10px]">Petugas KTR 2 / Saksi</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {subTab === "teguran" && (
+                                            <div className="max-w-[800px] mx-auto border border-slate-300 rounded-xl p-6 md:p-8 bg-white">
+                                                <div className="flex justify-between items-start mb-6 text-[12px]">
+                                                    <div className="font-bold">RSJD ATMA HUSADA MAHAKAM<br/><span className="font-normal">Tim Penegakan KTR</span></div>
+                                                    <div className="text-right">
+                                                        Samarinda, <input type="date" className="border-b border-slate-400 bg-transparent outline-none" /><br/>
+                                                        No: <input type="text" className="border-b border-slate-400 bg-transparent w-32 text-right outline-none" placeholder=".... /KTR/...." />
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="text-center font-bold text-[14px] flex items-center justify-center gap-2 mb-6">
+                                                    <Icon path={icAlert} className="w-5 h-5 text-amber-600" /> SURAT TEGURAN PELANGGARAN KTR
+                                                </div>
+
+                                                <div className="text-[12px] space-y-4">
+                                                    <div>
+                                                        Kepada Yth,<br/>
+                                                        Sdr/i. <input type="text" className="border-b border-slate-400 bg-transparent font-bold w-64 outline-none" /><br/>
+                                                        Di - Tempat
+                                                    </div>
+                                                    <p className="text-justify">Sehubungan dengan pelaksanaan Peraturan Kawasan Tanpa Rokok (KTR) di lingkungan RSJD Atma Husada Mahakam berdasarkan Perda Kaltim No.5/2017, bersama ini kami sampaikan teguran atas pelanggaran:</p>
+                                                    
+                                                    <div className="border border-amber-200 bg-amber-50 rounded-lg p-4 space-y-2">
+                                                        <div className="flex gap-2">
+                                                            Hari/Tgl: <input type="text" className="border-b border-slate-400 bg-transparent flex-1 outline-none" />
+                                                            Jam: <input type="time" className="border-b border-slate-400 bg-transparent outline-none" />
+                                                        </div>
+                                                        <div className="flex gap-2">
+                                                            Lokasi: <input type="text" className="border-b border-slate-400 bg-transparent flex-1 outline-none" />
+                                                        </div>
+                                                        <div className="flex gap-2 items-center">
+                                                            Pelanggaran: <input type="text" className="border-b border-slate-400 bg-transparent flex-1 outline-none" placeholder="Contoh: Merokok di area parkir" />
+                                                        </div>
+                                                    </div>
+
+                                                    <p className="text-justify">Kami harapkan Saudara dapat mematuhi peraturan KTR demi kesehatan bersama dan kenyamanan pasien. Apabila masih melakukan pelanggaran, akan dikenakan sanksi sesuai ketentuan yang berlaku.</p>
+
+                                                    <div className="flex justify-end pt-8">
+                                                        <div className="text-center text-[12px]">
+                                                            Ketua Tim Penegakan KTR,<br/>
+                                                            <div className="h-20"></div>
+                                                            <input type="text" placeholder="Nama Lengkap & NIP" className="text-center w-48 bg-transparent border-t border-slate-400 pt-1 outline-none" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
