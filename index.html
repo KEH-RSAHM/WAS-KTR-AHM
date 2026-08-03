@@ -1,433 +1,760 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Sistem Monitoring dan Pengawasan KTR RS Atma Husada Mahakam</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
-<!-- ==================== EDIT 2 BARIS DI BAWAH INI SAJA ==================== -->
-<script>
-const SUPABASE_URL = "https://bvdvhinqelkyjzcqxbev.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2ZHZoaW5xZWxreWp6Y3F4YmV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNDczNDgsImV4cCI6MjEwMDkyMzM0OH0.WZwXa_yoyyMxLIUY6l50-Hh7_cZziFcvMVfS0_rkrgY";
-</script>
-<!-- ==================== JANGAN EDIT SELAIN 2 BARIS DI ATAS ==================== -->
-<style>*{font-family:Inter,sans-serif}@media print{.no-print{display:none!important}.print-area{display:block!important}body{background:white!important}@page{size:A4 landscape;margin:10mm}}</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>RSJD ATMA HUSADA MAHAKAM - KTR ONLINE SIAP PAKAI</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.39.7/dist/umd/supabase.min.js"></script>
+  <style>
+  .scrollbar-hide::-webkit-scrollbar{display:none}.scrollbar-hide{-ms-overflow-style:none;scrollbar-width:none}
+  @media print {
+    .no-print { display: none !important; }
+    .print-area { display: block !important; }
+    body { background: white !important; }
+  }
+  </style>
 </head>
-<body class="bg-[#F6F9F7] min-h-screen">
-<div id="loginPage" class="min-h-screen flex items-center justify-center p-4">
-  <div class="w-full max-w-[400px] bg-white rounded-2xl shadow-xl border border-[#DBEAFE] p-8">
-    <div class="flex flex-col items-center mb-6">
-      <div class="w-12 h-12 rounded-xl bg-[#1E40AF] flex items-center justify-center text-white font-bold text-xl">KTR</div>
-      <h1 class="mt-3 font-bold text-[18px]">Sistem Dokumentasi KTR</h1>
-      <p class="text-[12px] text-slate-500">RSJD Atma Husada Mahakam</p>
-    </div>
-    <div class="space-y-3">
-      <input id="email" type="email" placeholder="Email dinas" class="w-full h-11 rounded-xl border border-[#DBEAFE] px-3 text-[14px] outline-none focus:border-[#1E40AF]">
-      <div class="relative"><input id="password" type="password" placeholder="Kata sandi" class="w-full h-11 rounded-xl border border-[#DBEAFE] px-3 pr-10 text-[14px] outline-none focus:border-[#1E40AF]"><button onclick="togglePass()" type="button" class="absolute right-3 top-3 text-slate-400">👁</button></div>
-      <div id="loginError" class="hidden text-[12px] text-red-600 bg-red-50 p-2 rounded-lg"></div>
-      <button onclick="doLogin()" id="btnLogin" class="w-full h-11 rounded-xl bg-[#1E40AF] text-white font-semibold text-[14px] hover:bg-blue-800">Masuk ke Sistem</button>
-      <div id="connStatus" class="text-[11px] text-center text-slate-400 mt-2"></div>
-    </div>
-  </div>
-</div>
-<div id="appPage" class="hidden">
-  <header class="no-print sticky top-0 z-20 bg-[#1E40AF] text-white h-14 flex items-center justify-between px-4">
-    <div class="flex items-center gap-3"><div class="w-8 h-8 rounded-lg bg-white text-[#1E40AF] flex items-center justify-center font-bold">KTR</div><div><div class="font-semibold text-[13px]">Sistem KTR RSJD</div><div id="userInfo" class="text-[11px] opacity-80"></div></div></div>
-    <div class="flex items-center gap-2"><span id="supaBadge" class="text-[11px] px-2 py-1 rounded-full bg-white/20">Cek koneksi...</span><button onclick="doLogout()" class="px-3 py-1.5 rounded-lg bg-white/20 text-[12px]">Keluar</button></div>
-  </header>
-  <div class="flex">
-    <nav class="no-print w-[220px] bg-white border-r border-[#DBEAFE] min-h-[calc(100vh-56px)] p-2 space-y-1 sticky top-14">
-      <button onclick="showTab('harian')" id="tab-harian" class="w-full text-left px-3 py-2.5 rounded-xl bg-[#1E40AF] text-white text-[13px]">1. Kendali Harian</button>
-      <button onclick="showTab('bulanan')" id="tab-bulanan" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 text-[13px]">2. Bulanan</button>
-      <button onclick="showTab('rekap')" id="tab-rekap" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 text-[13px]">3. Rekap</button>
-      <button onclick="showTab('laporan')" id="tab-laporan" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 text-[13px]">4. Laporan</button>
-      <button onclick="showTab('pendukung')" id="tab-pendukung" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 text-[13px]">5. Pendukung</button>
-      <button onclick="showTab('cpanel')" id="tab-cpanel" class="w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 text-[13px]">C-Panel</button>
-    </nav>
-    <main class="flex-1 p-4 md:p-6 space-y-4">
-      <!-- HARIAN -->
-      <div id="view-harian" class="space-y-4 print-area">
-        <div class="flex justify-between items-center"><h2 class="font-bold text-[18px]">Kendali Harian Patroli KTR</h2><button onclick="saveHarian()" class="no-print h-9 px-4 rounded-xl bg-[#1E40AF] text-white text-[13px]">Simpan ke Supabase</button></div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] p-4 grid md:grid-cols-6 gap-3 text-[13px]">
-          <div><label class="text-[11px]">Tanggal</label><input id="h_tanggal" type="date" class="mt-1 w-full h-9 border border-[#DBEAFE] rounded-lg px-2"></div>
-          <div><label class="text-[11px]">Shift</label><select id="h_shift" class="mt-1 w-full h-9 border border-[#DBEAFE] rounded-lg px-2"><option>Pagi</option><option>Siang</option><option>Sore</option><option>Malam</option></select></div>
-          <div><label class="text-[11px]">Jam Mulai</label><input id="h_jam1" type="time" class="mt-1 w-full h-9 border border-[#DBEAFE] rounded-lg px-2"></div>
-          <div><label class="text-[11px]">Jam Selesai</label><input id="h_jam2" type="time" class="mt-1 w-full h-9 border border-[#DBEAFE] rounded-lg px-2"></div>
-          <div><label class="text-[11px]">Petugas 1</label><input id="h_p1" class="mt-1 w-full h-9 border border-[#DBEAFE] rounded-lg px-2"></div>
-          <div><label class="text-[11px]">Petugas 2</label><input id="h_p2" class="mt-1 w-full h-9 border border-[#DBEAFE] rounded-lg px-2"></div>
-        </div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] overflow-hidden">
-          <div class="p-3 flex justify-between border-b border-[#DBEAFE]"><span class="font-semibold text-[13px]">Detail Lokasi (FK → mst_lokasi) - Bisa Kustom di C-Panel</span><button onclick="addHarianRow()" class="no-print h-8 px-3 rounded-lg bg-[#1E40AF] text-white text-[12px]">+ Tambah Baris</button></div>
-          <div class="overflow-auto"><table class="w-full text-[12px]"><thead class="bg-[#F6F9F7] text-[11px]"><tr><th class="p-2">No</th><th class="p-2">Waktu</th><th class="p-2 text-left">Lokasi (Referensi)</th><th class="p-2">Merokok</th><th class="p-2">Asbak</th><th class="p-2">Iklan</th><th class="p-2">Pelanggar</th><th class="p-2">Tindak Lanjut</th><th class="p-2 no-print"></th></tr></thead><tbody id="harianBody"></tbody></table></div>
-        </div>
-        <div id="harianList" class="bg-white rounded-xl border border-[#DBEAFE] p-3 text-[12px]"></div>
-      </div>
-      <!-- BULANAN -->
-      <div id="view-bulanan" class="hidden space-y-4 print-area">
-        <div class="flex justify-between"><h2 class="font-bold text-[18px]">Kendali Bulanan Sarana</h2><button onclick="saveBulanan()" class="no-print h-9 px-4 rounded-xl bg-[#1E40AF] text-white text-[13px]">Simpan</button></div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] p-4 grid grid-cols-3 gap-3"><input id="b_bulan" type="number" min=1 max=12 placeholder="Bulan 1-12" class="h-9 border border-[#DBEAFE] rounded-lg px-2"><input id="b_tahun" type="number" placeholder="Tahun" class="h-9 border border-[#DBEAFE] rounded-lg px-2"><input id="b_tgl" type="date" class="h-9 border border-[#DBEAFE] rounded-lg px-2"></div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] overflow-hidden"><table class="w-full text-[12px]"><thead class="bg-[#F6F9F7]"><tr><th class="p-2 text-left">Sarana (FK mst_sarana - Kustom di C-Panel)</th><th class="p-2">Ada</th><th class="p-2">Kondisi</th><th class="p-2">Keterangan</th></tr></thead><tbody id="bulananBody"></tbody></table></div>
-      </div>
-      <!-- REKAP -->
-      <div id="view-rekap" class="hidden space-y-4 print-area">
-        <div class="flex justify-between"><h2 class="font-bold text-[18px]">Rekapitulasi</h2><button onclick="hitungRekap()" class="no-print h-9 px-4 rounded-xl bg-[#1E40AF] text-white text-[13px]">Hitung dari Harian (GROUP BY lokasi_id)</button></div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] overflow-hidden"><table class="w-full text-[12px]"><thead class="bg-[#F6F9F7]"><tr><th class="p-2 text-left">Lokasi (FK)</th><th class="p-2">M1</th><th class="p-2">M2</th><th class="p-2">M3</th><th class="p-2">M4</th><th class="p-2 bg-[#DBEAFE]">Total</th></tr></thead><tbody id="rekapBody"></tbody></table></div>
-      </div>
-      <!-- LAPORAN -->
-      <div id="view-laporan" class="hidden space-y-4 print-area">
-        <div class="flex justify-between"><h2 class="font-bold text-[18px]">Laporan Bulanan</h2><button onclick="saveLaporan()" class="no-print h-9 px-4 rounded-xl bg-[#1E40AF] text-white text-[13px]">Simpan Laporan</button></div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] p-4 space-y-3">
-          <div class="grid grid-cols-4 gap-2"><input id="l_bulan" type="number" placeholder="Bulan" class="h-9 border border-[#DBEAFE] rounded-lg px-2"><input id="l_tahun" type="number" placeholder="Tahun" class="h-9 border border-[#DBEAFE] rounded-lg px-2"><input id="l_pj" placeholder="Penanggung Jawab" class="h-9 border border-[#DBEAFE] rounded-lg px-2 col-span-2"></div>
-          <textarea id="l_ringkas" placeholder="Ringkasan" rows="3" class="w-full border border-[#DBEAFE] rounded-lg p-2 text-[13px]"></textarea>
-          <div class="grid grid-cols-2 gap-2"><textarea id="l_kendala" placeholder="Kendala" rows="2" class="border border-[#DBEAFE] rounded-lg p-2 text-[13px]"></textarea><textarea id="l_tindak" placeholder="Tindak Lanjut" rows="2" class="border border-[#DBEAFE] rounded-lg p-2 text-[13px]"></textarea></div>
-          <textarea id="l_rekom" placeholder="Rekomendasi" rows="2" class="w-full border border-[#DBEAFE] rounded-lg p-2 text-[13px]"></textarea>
-        </div>
-        <div id="laporanList" class="bg-white rounded-xl border border-[#DBEAFE] p-3 text-[12px]"></div>
-      </div>
-      <!-- PENDUKUNG -->
-      <div id="view-pendukung" class="hidden space-y-4">
-        <div class="flex justify-between items-center"><h2 class="font-bold text-[18px]">Dokumen Pendukung - Input & Publish</h2><button onclick="saveDok()" class="h-9 px-4 rounded-xl bg-[#1E40AF] text-white text-[13px]">Simpan & Publish</button></div>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] p-4 grid md:grid-cols-2 gap-3">
-          <input id="d_judul" placeholder="Judul Dokumen (contoh: SK KTR 2024)" class="h-9 border border-[#DBEAFE] rounded-lg px-2">
-          <select id="d_kat" class="h-9 border border-[#DBEAFE] rounded-lg px-2"><option>SK</option><option>SOP</option><option>Foto</option><option>Video</option><option>Surat Teguran</option><option>Dokumentasi</option><option>Lainnya</option></select>
-          <input id="d_tgl" type="date" class="h-9 border border-[#DBEAFE] rounded-lg px-2">
-          <label class="flex items-center gap-2 text-[13px]"><input id="d_publish" type="checkbox" checked class="w-4 h-4"> Publish langsung (tampilkan di daftar publik)</label>
-          <input id="d_file" type="file" class="h-9 border border-[#DBEAFE] rounded-lg px-2 text-[12px] md:col-span-2">
-          <textarea id="d_desc" placeholder="Deskripsi dokumen" class="col-span-2 border border-[#DBEAFE] rounded-lg p-2 text-[13px]"></textarea>
-        </div>
-        <div id="dokList" class="grid md:grid-cols-2 gap-3 text-[12px]"></div>
-      </div>
-      <!-- CPANEL -->
-      <div id="view-cpanel" class="hidden space-y-4">
-        <h2 class="font-bold text-[18px]">C-Panel - Referensi Bisa Kustom</h2>
-        <div class="bg-white rounded-xl border border-[#DBEAFE] p-4">
-          <h3 class="font-semibold text-[13px] mb-2">Koneksi Supabase - Sekali Input Langsung Aktif Semua Fitur</h3>
-          <div class="grid md:grid-cols-2 gap-3"><input id="c_url" placeholder="https://xxx.supabase.co" class="h-9 border border-[#DBEAFE] rounded-lg px-2 font-mono text-[12px]"><input id="c_key" placeholder="eyJ..." type="password" class="h-9 border border-[#DBEAFE] rounded-lg px-2 font-mono text-[12px]"></div>
-          <div class="flex gap-2 mt-3"><button onclick="saveConfig()" class="h-9 px-4 rounded-xl bg-[#1E40AF] text-white text-[13px]">Simpan & Test Koneksi</button><span id="c_status" class="text-[12px] px-3 py-2 rounded-lg border bg-slate-50"></span></div>
-          <div class="mt-2 text-[11px] text-slate-500">Edit 2 baris di atas file index.html juga bisa. Setelah terhubung, semua tabel terhubung via FK: lokasi_id → mst_lokasi, sarana_id → mst_sarana, created_by → profiles.</div>
-        </div>
-        <div class="grid md:grid-cols-2 gap-4">
-          <div class="bg-white rounded-xl border border-[#DBEAFE] p-4">
-            <div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-[13px]">Master Lokasi (mst_lokasi) - Bisa Kustom</h3><span class="text-[10px] text-slate-400">FK target</span></div>
-            <div id="lokasiList" class="space-y-1 max-h-[300px] overflow-auto text-[12px]"></div>
-            <div class="flex gap-1 mt-3"><input id="newLok" placeholder="Nama lokasi baru" class="flex-1 h-8 border border-[#DBEAFE] rounded-lg px-2 text-[12px]"><input id="newLokType" placeholder="Type" value="Publik" class="w-[90px] h-8 border border-[#DBEAFE] rounded-lg px-2 text-[12px]"><button onclick="addLokasi()" class="h-8 px-3 rounded-lg bg-[#1E40AF] text-white text-[12px]">Tambah</button></div>
-            <div class="text-[10px] text-slate-400 mt-2">Bisa edit nama langsung di list, hapus dengan tombol ✕. Perubahan langsung sync ke Supabase.</div>
-          </div>
-          <div class="bg-white rounded-xl border border-[#DBEAFE] p-4">
-            <div class="flex justify-between items-center mb-2"><h3 class="font-semibold text-[13px]">Master Sarana (mst_sarana) - Bisa Kustom</h3><span class="text-[10px] text-slate-400">FK target</span></div>
-            <div id="saranaList" class="space-y-1 max-h-[300px] overflow-auto text-[12px]"></div>
-            <div class="flex gap-1 mt-3"><input id="newSar" placeholder="Nama sarana baru" class="flex-1 h-8 border border-[#DBEAFE] rounded-lg px-2 text-[12px]"><button onclick="addSarana()" class="h-8 px-3 rounded-lg bg-[#1E40AF] text-white text-[12px]">Tambah</button></div>
-            <div class="text-[10px] text-slate-400 mt-2">Dipakai di Kendali Bulanan. Bisa kustom tambah/hapus/edit.</div>
-          </div>
-        </div>
-      </div>
-    </main>
-  </div>
-</div>
+<body class="bg-[#F6F9F7]">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
 
-<script>
-let supabaseClient=null,currentUser=null;
-let mstLokasi=[]; // No dummy - load from Supabase
-let mstSarana=[];
-let harianRows=[];
-let defaultLokasi = [
-  {name:'Lobby Utama',type:'Publik'},{name:'Poliklinik Terpadu',type:'Pelayanan'},{name:'IGD',type:'Pelayanan'},{name:'R. Inap Flamboyan',type:'Pelayanan'},{name:'R. Inap Kenanga',type:'Pelayanan'},{name:'Kantin / Dapur Gizi',type:'Penunjang'},{name:'Area Parkir',type:'Publik'},{name:'Musholla',type:'Publik'},{name:'Toilet Umum',type:'Publik'},{name:'Taman / Selasar',type:'Publik'},{name:'Apotek / Farmasi',type:'Pelayanan'},{name:'Kantor Manajemen',type:'Penunjang'}
-];
-let defaultSarana = [
-  {name:'Papan Tanda KTR'},{name:'Stiker Dilarang Merokok'},{name:'Spanduk KTR'},{name:'Poster KTR'},{name:'Leaflet / Brosur KTR'},{name:'Audio Pengumuman KTR'},{name:'Asbak (harus TIDAK ADA)'},{name:'Iklan Rokok (harus TIDAK ADA)'},{name:'Kotak Pengaduan KTR'},{name:'Rompi Petugas KTR'}
+// ================= CONFIG SIAP PAKAI - EMBEDDED REAL KEY =================
+// Sudah diisi dengan ANON KEY asli dari user, user lain tinggal pakai tanpa input ulang
+const EMBEDDED_SUPABASE_URL = 'https://bvdvhinqelkyjzcqxbev.supabase.co';
+const EMBEDDED_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJ2ZHZoaW5xZWxreWp6Y3F4YmV2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODUzNDczNDgsImV4cCI6MjEwMDkyMzM0OH0.WZwXa_yoyyMxLIUY6l50-Hh7_cZziFcvMVfS0_rkrgY';
+
+const Icon = ({ path, ...props }) => (<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" {...props}>{path}</svg>);
+const icCalendar = <><path d="M8 2v4"/><path d="M16 2v4"/><rect width="18" height="18" x="3" y="4" rx="2"/><path d="M3 10h18"/><path d="M8 14h.01"/><path d="M12 14h.01"/><path d="M16 14h.01"/><path d="M8 18h.01"/><path d="M12 18h.01"/><path d="M16 18h.01"/></>;
+const icChartCol = <><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></>;
+const icClipCheck = <><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/></>;
+const icFileChart = <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M8 18v-2"/><path d="M12 18v-4"/><path d="M16 18v-6"/></>;
+const icFileText = <><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></>;
+const icMapPin = <><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></>;
+const icShield = <><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/></>;
+const icSave = <><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></>;
+const icCloud = <><path d="M17.5 19H9a7 7 0 1 1 6.71-9h1.79a4.5 4.5 0 1 1 0 9Z"/></>;
+const icLock = <><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></>;
+const icDatabase = <><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></>;
+
+const defaultChecklist = [
+  {no:1,sarana:"Papan Tanda KTR Utama (di pintu masuk)",standar:"Minimal 60x90cm, terlihat jelas"},
+  {no:2,sarana:"Stiker Dilarang Merokok",standar:"Tiap ruangan, pintu, jendela"},
+  {no:3,sarana:"Spanduk KTR",standar:"Area strategis, tidak robek"},
+  {no:4,sarana:"Poster Bahaya Rokok",standar:"Area tunggu, edukasi"},
+  {no:5,sarana:"Leaflet / Brosur KTR",standar:"Tersedia di resepsionis / pojok KIE"},
+  {no:6,sarana:"Pengumuman Audio KTR",standar:"Diputar rutin via pengeras suara"},
+  {no:7,sarana:"Tidak tersedia asbak / tempat puntung",standar:"Nihil di seluruh kawasan"},
+  {no:8,sarana:"Tidak ada iklan/promosi rokok",standar:"Nihil baliho, poster, penjualan"},
+  {no:9,sarana:"Kotak Pengaduan / Hotline KTR",standar:"Nomor aktif & tercatat"},
+  {no:10,sarana:"Rompi / ID Card Tim Penegak KTR",standar:"Dipakai saat patroli"}
 ];
 
-function initSupabase(){
-  const url = (typeof SUPABASE_URL!=='undefined'?SUPABASE_URL:'') || localStorage.getItem('sb_url')||'';
-  const key = (typeof SUPABASE_ANON_KEY!=='undefined'?SUPABASE_ANON_KEY:'') || localStorage.getItem('sb_key')||'';
-  document.getElementById('c_url').value=url; document.getElementById('c_key').value=key;
-  const placeholder = url.includes('ISI-URL')||key.includes('ISI-KEY')||!url||!key;
-  if(placeholder){
-    document.getElementById('connStatus').innerHTML='⚠️ Isi 2 baris SUPABASE_URL & KEY di atas file index.html - lalu semua fitur aktif';
-    document.getElementById('supaBadge').innerText='Offline - Isi Key di atas';
-    document.getElementById('c_status').innerText='Belum dikonfigurasi - isi URL & Key';
-    mstLokasi = defaultLokasi.map((l,i)=>({id:'TMP_L'+i, ...l}));
-    mstSarana = defaultSarana.map((s,i)=>({id:'TMP_S'+i, ...s}));
-    renderMasterLists(); renderHarianRows(); renderBulananRows();
-    return;
-  }
-  try{supabaseClient = supabase.createClient(url,key); testConn();}catch(e){console.error(e)}
-}
-async function testConn(){
-  if(!supabaseClient) return;
-  try{
-    const {error} = await supabaseClient.from('mst_lokasi').select('id').limit(1);
-    if(error && error.code!=='PGRST116') throw error;
-    document.getElementById('supaBadge').innerText='● Terhubung - Semua fitur aktif';
-    document.getElementById('supaBadge').className='text-[11px] px-2 py-1 rounded-full bg-emerald-500 text-white';
-    document.getElementById('c_status').innerText='● Terhubung - FK aktif, fitur aktif';
-    document.getElementById('c_status').className='text-[12px] px-3 py-2 rounded-lg border bg-emerald-50 border-emerald-200 text-emerald-700';
-    document.getElementById('connStatus').innerText='Terhubung ke Supabase';
-    await loadMaster();
-    await loadHarianList(); await loadLaporan(); await loadDok();
-  }catch(err){
-    document.getElementById('supaBadge').innerText='● Config OK, jalankan SQL schema dulu';
-    document.getElementById('supaBadge').className='text-[11px] px-2 py-1 rounded-full bg-amber-500 text-white';
-    document.getElementById('c_status').innerText='Jalankan SQL ktr-FINAL-SCHEMA-RELASI-AKTIF.sql di Supabase SQL Editor';
-    // fallback to default for offline editing
-    mstLokasi = defaultLokasi.map((l,i)=>({id:'TMP_L'+i, ...l}));
-    mstSarana = defaultSarana.map((s,i)=>({id:'TMP_S'+i, ...s}));
-    renderMasterLists(); renderHarianRows(); renderBulananRows();
-  }
-}
-function saveConfig(){
-  const u=document.getElementById('c_url').value.trim(),k=document.getElementById('c_key').value.trim();
-  if(!u||!k){alert('Isi URL & Key');return}
-  localStorage.setItem('sb_url',u); localStorage.setItem('sb_key',k);
-  supabaseClient=supabase.createClient(u,k); testConn();
-  alert('Tersimpan! Sekarang semua fitur aktif & terhubung. Referensi tabel bisa dikustom.');
-}
-function togglePass(){const p=document.getElementById('password'); p.type=p.type==='password'?'text':'password'}
-async function doLogin(){
-  const email=document.getElementById('email').value.trim(), pass=document.getElementById('password').value, errEl=document.getElementById('loginError');
-  if(!email||!pass){errEl.innerText='Isi email & password'; errEl.classList.remove('hidden'); return}
-  document.getElementById('btnLogin').innerText='Memproses...';
-  try{
-    if(supabaseClient){const {data,error}=await supabaseClient.auth.signInWithPassword({email,password:pass}); if(error) throw error; currentUser=data.user;}
-    else currentUser={email};
-    document.getElementById('loginPage').classList.add('hidden'); document.getElementById('appPage').classList.remove('hidden');
-    document.getElementById('userInfo').innerText=currentUser.email;
-    document.getElementById('h_tanggal').valueAsDate=new Date();
-  }catch(e){errEl.innerText=e.message; errEl.classList.remove('hidden');}finally{document.getElementById('btnLogin').innerText='Masuk ke Sistem';}
-}
-function doLogout(){location.reload()}
-function showTab(n){['harian','bulanan','rekap','laporan','pendukung','cpanel'].forEach(t=>{document.getElementById('view-'+t).classList.add('hidden'); document.getElementById('tab-'+t).className='w-full text-left px-3 py-2.5 rounded-xl hover:bg-slate-50 text-[13px]';}); document.getElementById('view-'+n).classList.remove('hidden'); document.getElementById('tab-'+n).className='w-full text-left px-3 py-2.5 rounded-xl bg-[#1E40AF] text-white text-[13px]'; if(n==='pendukung') loadDok(); if(n==='rekap') hitungRekap();}
+const defaultPermissions = {
+  admin: {input_form:true, tambah_hapus_area:true, cetak_BA:true, cetak_Teguran:true, melihat_laporan:true, mengubah_lokasi:true},
+  editor: {input_form:true, tambah_hapus_area:false, cetak_BA:true, cetak_Teguran:true, melihat_laporan:true, mengubah_lokasi:false},
+  viewer: {input_form:false, tambah_hapus_area:false, cetak_BA:false, cetak_Teguran:false, melihat_laporan:true, mengubah_lokasi:false}
+};
+const getUserPermissions = (u) => {
+  if(!u) return {};
+  if(u.permissions && Object.keys(u.permissions).length>0) return u.permissions;
+  return defaultPermissions[u.role] || defaultPermissions.viewer;
+};
+const can = (u, perm) => {
+  const perms = getUserPermissions(u);
+  return !!perms[perm];
+};
 
-// HARIAN - Tanpa dummy
-function addHarianRow(){harianRows.push({id:Date.now()+Math.random(),waktu:new Date().toTimeString().slice(0,5),lokasi_id:mstLokasi[0]?.id||'',merokok:false,asbak:false,iklan:false,pelanggar:0,tindak:''}); renderHarianRows();}
-function renderHarianRows(){
-  const tb=document.getElementById('harianBody');
-  if(!mstLokasi.length){tb.innerHTML='<tr><td colspan=9 class="p-6 text-center text-slate-400">Belum ada master lokasi - tambah di C-Panel → Master Lokasi</td></tr>'; return;}
-  tb.innerHTML = harianRows.length? harianRows.map((r,i)=>`<tr class="border-t"><td class="p-2 text-center">${i+1}</td><td class="p-2"><input type="time" value="${r.waktu}" onchange="harianRows[${i}].waktu=this.value" class="h-7 w-[80px] border rounded px-1"></td><td class="p-2"><select onchange="harianRows[${i}].lokasi_id=this.value" class="h-7 w-[150px] border rounded px-1">${mstLokasi.map(l=>`<option value="${l.id}" ${l.id===r.lokasi_id?'selected':''}>${l.name}</option>`).join('')}</select></td><td class="p-2 text-center"><input type="checkbox" ${r.merokok?'checked':''} onchange="harianRows[${i}].merokok=this.checked"></td><td class="p-2 text-center"><input type="checkbox" ${r.asbak?'checked':''} onchange="harianRows[${i}].asbak=this.checked"></td><td class="p-2 text-center"><input type="checkbox" ${r.iklan?'checked':''} onchange="harianRows[${i}].iklan=this.checked"></td><td class="p-2"><input type="number" value="${r.pelanggar}" onchange="harianRows[${i}].pelanggar=parseInt(this.value)||0" class="h-7 w-[50px] border rounded px-1"></td><td class="p-2"><input value="${r.tindak}" onchange="harianRows[${i}].tindak=this.value" class="h-7 w-[120px] border rounded px-1"></td><td class="p-2 no-print"><button onclick="harianRows.splice(${i},1);renderHarianRows()" class="text-red-500">✕</button></td></tr>`).join(''):`<tr><td colspan=9 class="p-6 text-center text-slate-400">Klik Tambah Baris - tanpa dummy, FK ke mst_lokasi yang bisa dikustom di C-Panel</td></tr>`;
-}
-async function saveHarian(){
-  if(!harianRows.length){alert('Tambah baris dulu');return}
-  const h={tanggal:document.getElementById('h_tanggal').value, shift:document.getElementById('h_shift').value, jam_mulai:document.getElementById('h_jam1').value||null, jam_selesai:document.getElementById('h_jam2').value||null, petugas_1:document.getElementById('h_p1').value, petugas_2:document.getElementById('h_p2').value};
-  if(!h.tanggal||!h.petugas_1){alert('Tanggal & Petugas 1 wajib');return}
-  if(!supabaseClient){alert('Isi Supabase URL & Key di atas file dulu biar terhubung');return}
-  try{
-    const {data:kh,error}=await supabaseClient.from('kendali_harian').insert(h).select().single();
-    if(error) throw error;
-    const details=harianRows.map((r,i)=>({kendali_id:kh.id, no_urut:i+1, waktu:r.waktu||null, lokasi_id: r.lokasi_id && !r.lokasi_id.startsWith('TMP_') ? r.lokasi_id : null, lokasi_text: mstLokasi.find(l=>l.id===r.lokasi_id)?.name||r.lokasi_id, merokok:r.merokok?'Ya':'Tidak', asbak:r.asbak?'Ya':'Tidak', iklan:r.iklan?'Ya':'Tidak', pelanggar:r.pelanggar, tindak_lanjut:r.tindak, nama_petugas: h.petugas_1}));
-    const {error:e2}=await supabaseClient.from('kendali_harian_detail').insert(details);
-    if(e2) throw e2;
-    alert('✅ Tersimpan ke Supabase! Relasi FK lokasi_id → mst_lokasi aktif. Tanpa dummy.');
-    harianRows=[]; renderHarianRows(); loadHarianList();
-  }catch(e){alert('Gagal simpan: '+e.message+'\nPastikan sudah jalankan SQL schema');}
-}
-async function loadHarianList(){
-  const el=document.getElementById('harianList');
-  if(!supabaseClient){el.innerHTML='<span class="text-slate-400">Offline - isi key untuk load dari Supabase (tanpa dummy)</span>'; return;}
-  const {data} = await supabaseClient.from('kendali_harian').select('*, kendali_harian_detail(*, mst_lokasi(name))').order('tanggal',{ascending:false}).limit(5);
-  el.innerHTML = data && data.length ? '<b>5 Data Terakhir (JOIN FK):</b><br>'+data.map(d=>`${d.tanggal} ${d.shift} - ${d.petugas_1} (${d.kendali_harian_detail?.length||0} lokasi)`).join('<br>') : '<span class="text-slate-400">Belum ada data harian - kosong tanpa dummy, silakan input</span>';
-}
+const defaultLocations = ["Lobby Utama","Poliklinik Terpadu","IGD","R. Inap Flamboyan","R. Inap Kenanga","Kantin / Dapur Gizi","Area Parkir","Musholla","Toilet Umum","Taman / Selasar","Apotek / Farmasi","Kantor Manajemen"];
+const defaultUsers = [{username:'admin',role:'admin',password:'123',permissions:defaultPermissions.admin},{username:'petugas',role:'editor',password:'123',permissions:defaultPermissions.editor},{username:'viewer',role:'viewer',password:'123',permissions:defaultPermissions.viewer}];
 
-// BULANAN
-function renderBulananRows(){
-  const tb=document.getElementById('bulananBody');
-  if(!mstSarana.length){tb.innerHTML='<tr><td colspan=4 class="p-6 text-center text-slate-400">Belum ada master sarana - tambah di C-Panel</td></tr>'; return;}
-  tb.innerHTML=mstSarana.map((s,i)=>`<tr class="border-t"><td class="p-2">${s.name} <span class="text-[10px] text-slate-400">${s.id.startsWith('TMP_')?'':'FK:'+s.id.slice(0,8)}</span></td><td class="p-2 text-center"><select id="b_ada_${i}" class="h-7 border rounded px-1"><option value="">-</option><option>Ada</option><option>Tidak Ada</option></select></td><td class="p-2 text-center"><select id="b_kond_${i}" class="h-7 border rounded px-1"><option>-</option><option>Baik</option><option>Rusak</option><option>Hilang</option></select></td><td class="p-2"><input id="b_ket_${i}" class="h-7 w-full border rounded px-1" placeholder="Keterangan"></td></tr>`).join('');
-}
-async function saveBulanan(){
-  const b=document.getElementById('b_bulan').value, t=document.getElementById('b_tahun').value, d=document.getElementById('b_tgl').value;
-  if(!b||!t){alert('Isi bulan tahun');return}
-  if(!supabaseClient){alert('Isi Supabase key dulu');return}
-  try{
-    const {data,error}=await supabaseClient.from('kendali_bulanan').insert({bulan:parseInt(b),tahun:parseInt(t),tanggal_cek:d||null}).select().single();
-    if(error) throw error;
-    const details=mstSarana.map((s,i)=>({kendali_bulanan_id:data.id, sarana_id: s.id.startsWith('TMP_')?null:s.id, sarana_text:s.name, ada:document.getElementById('b_ada_'+i).value||'Ada', kondisi:document.getElementById('b_kond_'+i).value||'-', keterangan:document.getElementById('b_ket_'+i).value}));
-    const {error:e2}=await supabaseClient.from('kendali_bulanan_detail').insert(details);
-    if(e2) throw e2;
-    alert('✅ Bulanan tersimpan! FK sarana_id → mst_sarana aktif');
-  }catch(e){alert('Gagal: '+e.message)}
-}
+const loadJson = (k,f)=>{try{return JSON.parse(localStorage.getItem(k)||'null')||f}catch(e){return f}};
+const saveJson = (k,v)=>localStorage.setItem(k,JSON.stringify(v));
 
-// REKAP
-async function hitungRekap(){
-  const tb=document.getElementById('rekapBody');
-  if(!supabaseClient){tb.innerHTML=mstLokasi.map(l=>`<tr class="border-t"><td class="p-2">${l.name}</td><td class="p-2 text-center">0</td><td class="p-2 text-center">0</td><td class="p-2 text-center">0</td><td class="p-2 text-center">0</td><td class="p-2 text-center font-bold bg-[#F6F9F7]">0</td></tr>`).join(''); return;}
-  const {data} = await supabaseClient.from('kendali_harian_detail').select('*, kendali_harian!inner(tanggal), mst_lokasi(name)').limit(1000);
-  const map={};
-  mstLokasi.forEach(l=>{map[l.name]={lokasi:l.name, m1:0,m2:0,m3:0,m4:0}});
-  (data||[]).forEach(d=>{
-    const key=d.lokasi_text||d.mst_lokasi?.name||'Lainnya';
-    if(!map[key]) map[key]={lokasi:key, m1:0,m2:0,m3:0,m4:0};
-    const day=new Date(d.kendali_harian.tanggal).getDate();
-    const m=day<=7?'m1':day<=14?'m2':day<=21?'m3':'m4';
-    map[key][m]+= d.pelanggar||0;
-  });
-  const rows=Object.values(map);
-  tb.innerHTML=rows.length? rows.map(r=>`<tr class="border-t"><td class="p-2">${r.lokasi}</td><td class="p-2 text-center">${r.m1}</td><td class="p-2 text-center">${r.m2}</td><td class="p-2 text-center">${r.m3}</td><td class="p-2 text-center">${r.m4}</td><td class="p-2 text-center font-bold bg-[#F6F9F7]">${r.m1+r.m2+r.m3+r.m4}</td></tr>`).join(''):'<tr><td colspan=6 class="p-6 text-center text-slate-400">Belum ada data harian - input Harian dulu</td></tr>';
-}
+function App(){
+  const [page,setPage]=useState('landing');
+  const [user,setUser]=useState(null);
+  const [users,setUsers]=useState(defaultUsers);
+  const [locations,setLocations]=useState(defaultLocations);
+  const [activeTab,setActiveTab]=useState('harian');
+  const [subTab,setSubTab]=useState('checklist');
+  const [newLoc,setNewLoc]=useState('');
+  const [locName,setLocName]=useState('');
+  const [rbacUsername,setRbacUsername]=useState('');
+  const [rbacPassword,setRbacPassword]=useState('');
+  const [rbacRole,setRbacRole]=useState('admin');
+  const [rbacPerms,setRbacPerms]=useState(defaultPermissions.admin);
+  const [editingUser,setEditingUser]=useState(null);
+  const [showPass,setShowPass]=useState(false);
+  const [loginUsername,setLoginUsername]=useState('');
+  const [loginPassword,setLoginPassword]=useState('');
+  const [loading,setLoading]=useState(false);
+  const [dbStatus,setDbStatus]=useState('connecting');
+  const [dbErrorDetail,setDbErrorDetail]=useState('');
+  const [toast,setToast]=useState(null);
+  const supabaseRef = useRef(null);
 
-// LAPORAN
-async function saveLaporan(){
-  const p={bulan:parseInt(document.getElementById('l_bulan').value)||new Date().getMonth()+1, tahun:parseInt(document.getElementById('l_tahun').value)||new Date().getFullYear(), ringkasan:document.getElementById('l_ringkas').value, kendala:document.getElementById('l_kendala').value, tindak_lanjut:document.getElementById('l_tindak').value, rekomendasi:document.getElementById('l_rekom').value, penanggung_jawab:document.getElementById('l_pj').value, status:'Draft'};
-  if(!p.ringkasan){alert('Ringkasan wajib');return}
-  if(!supabaseClient){alert('Isi Supabase key dulu');return}
-  const {error}=await supabaseClient.from('laporan_bulanan').insert(p);
-  if(error) alert(error.message); else {alert('✅ Laporan tersimpan - tanpa dummy'); loadLaporan();}
-}
-async function loadLaporan(){
-  const el=document.getElementById('laporanList');
-  if(!supabaseClient){el.innerHTML='<span class="text-slate-400">Offline - tanpa dummy</span>'; return;}
-  const {data}=await supabaseClient.from('laporan_bulanan').select('*').order('created_at',{ascending:false}).limit(5);
-  el.innerHTML = data && data.length ? data.map(d=>`<div class="border-b py-2 flex justify-between"><div><b>${d.bulan}/${d.tahun}</b> - ${d.ringkasan.slice(0,80)} <span class="text-[10px] px-1.5 py-0.5 rounded bg-slate-100">${d.status}</span></div><div class="text-[11px] text-slate-400">${d.penanggung_jawab||''}</div></div>`).join('') : '<span class="text-slate-400">Belum ada laporan - kosong tanpa dummy</span>';
-}
+  const [cfgUrl,setCfgUrl]=useState(localStorage.getItem('ktr_supabase_url') || EMBEDDED_SUPABASE_URL);
+  const [cfgAnon,setCfgAnon]=useState(localStorage.getItem('ktr_supabase_anon') || EMBEDDED_SUPABASE_ANON_KEY);
+  const [cfgUrlInput,setCfgUrlInput]=useState(cfgUrl);
+  const [cfgAnonInput,setCfgAnonInput]=useState(cfgAnon);
 
-// DOKUMEN PENDUKUNG - Input & Publish
-async function saveDok(){
-  const judul=document.getElementById('d_judul').value.trim(), kat=document.getElementById('d_kat').value, tgl=document.getElementById('d_tgl').value, desc=document.getElementById('d_desc').value, isPublish=document.getElementById('d_publish').checked;
-  if(!judul){alert('Judul wajib');return}
-  if(!supabaseClient){alert('Isi Supabase URL & Key dulu biar bisa publish');return}
-  try{
-    let fileUrl='';
-    const fileInput=document.getElementById('d_file');
-    if(fileInput.files[0]){
-      const file=fileInput.files[0];
-      const fileName=`${Date.now()}_${file.name}`;
-      const {data,error}=await supabaseClient.storage.from('ktr-dokumentasi').upload(fileName, file);
+  const [showChangePass,setShowChangePass]=useState(false);
+  const [oldPassInput,setOldPassInput]=useState('');
+  const [newPassInput,setNewPassInput]=useState('');
+  const [confirmPassInput,setConfirmPassInput]=useState('');
+  const [changePassTarget,setChangePassTarget]=useState(null);
+
+  const [harianList,setHarianList]=useState([]);
+  const [bulananList,setBulananList]=useState([]);
+  const [rekapList,setRekapList]=useState([]);
+  const [laporanList,setLaporanList]=useState([]);
+  const [baList,setBaList]=useState([]);
+  const [teguranList,setTeguranList]=useState([]);
+
+  const getToday = ()=> new Date().toISOString().split('T')[0];
+  const getThisMonth = ()=> new Date().toISOString().slice(0,7);
+
+  const [fTgl,setFTgl]=useState(getToday());
+  const [fShift,setFShift]=useState('Pagi');
+  const [fWaktu,setFWaktu]=useState('');
+  const [fPetugas1,setFPetugas1]=useState('');
+  const [fPetugas2,setFPetugas2]=useState('');
+  const [harianGrid,setHarianGrid]=useState({});
+  const [bulananGrid,setBulananGrid]=useState({});
+  const [bulananBulan,setBulananBulan]=useState(getThisMonth());
+  const [rekapGrid,setRekapGrid]=useState({});
+  const [rekapBulan,setRekapBulan]=useState(getThisMonth());
+
+  const [checklistGrid,setChecklistGrid]=useState({});
+
+
+  const [lapBulan,setLapBulan]=useState('');
+  const [lapRingkasan,setLapRingkasan]=useState('');
+  const [lapKendala,setLapKendala]=useState('');
+  const [lapRekomendasi,setLapRekomendasi]=useState('');
+  const [lapPelapor,setLapPelapor]=useState('');
+  const [lapMengetahui,setLapMengetahui]=useState('');
+  const [lapDirektur,setLapDirektur]=useState('');
+
+  const [baNomor,setBaNomor]=useState('');
+  const [baTgl,setBaTgl]=useState(getToday());
+  const [baPetugas1,setBaPetugas1]=useState('');
+  const [baJab1,setBaJab1]=useState('');
+  const [baPetugas2,setBaPetugas2]=useState('');
+  const [baJab2,setBaJab2]=useState('');
+  const [baPelanggar,setBaPelanggar]=useState('');
+  const [baStatus,setBaStatus]=useState('Karyawan');
+  const [baUraian,setBaUraian]=useState('');
+  const [baTindak,setBaTindak]=useState('');
+
+  const [tgTglCetak,setTgTglCetak]=useState(getToday());
+  const [tgNomor,setTgNomor]=useState('');
+  const [tgNama,setTgNama]=useState('');
+  const [tgHariTgl,setTgHariTgl]=useState('');
+  const [tgJam,setTgJam]=useState('');
+  const [tgLokasi,setTgLokasi]=useState('');
+  const [tgPelanggaran,setTgPelanggaran]=useState('');
+  const [tgKetua,setTgKetua]=useState('');
+
+  const showToast = (msg, type='info')=>{ setToast({msg,type}); setTimeout(()=>setToast(null), 5000); };
+
+  const initSupabase = async (url, anonKey, silent=false) => {
+    if(!url || !anonKey){
+      setDbStatus('error'); setDbErrorDetail('URL atau ANON KEY kosong');
+      if(!silent) showToast('URL & ANON KEY wajib diisi','error');
+      return false;
+    }
+    try{
+      setDbStatus('connecting'); setDbErrorDetail('Mencoba konek ke '+url);
+      const supabaseLib = window.supabase || window.Supabase || window.supabase_js;
+      if(!supabaseLib || !supabaseLib.createClient) throw new Error('Supabase library belum ter-load, cek CDN');
+      const client = supabaseLib.createClient(url, anonKey);
+      supabaseRef.current = client;
+      // Coba query ringan - jika tabel belum ada, tetap anggap konek tapi kasih warning khusus
+      const { data, error } = await client.from('ktr_users').select('id').limit(1);
+      if(error){
+        // Jika error karena tabel tidak ada, tetap anggap konek (karena KEY & URL benar)
+        if(error.message && (error.message.includes('does not exist') || error.message.includes('not exist') || error.code==='42P01')){
+          setDbStatus('connected'); setDbErrorDetail('');
+          setCfgUrl(url); setCfgAnon(anonKey);
+          localStorage.setItem('ktr_supabase_url', url);
+          localStorage.setItem('ktr_supabase_anon', anonKey);
+          if(!silent) showToast('✅ Koneksi OK! Tapi tabel belum ada. Jalankan supabase_schema_v2.sql di SQL Editor Supabase','warning');
+          return true;
+        } else {
+          throw error;
+        }
+      }
+      // Sukses
+      setDbStatus('connected'); setDbErrorDetail('');
+      setCfgUrl(url); setCfgAnon(anonKey);
+      localStorage.setItem('ktr_supabase_url', url);
+      localStorage.setItem('ktr_supabase_anon', anonKey);
+      if(!silent) showToast('✅ Supabase terhubung ONLINE!','success');
+      await refreshAllLists(client);
+      const { data: uData } = await client.from('ktr_users').select('*').order('created_at');
+      if(uData && uData.length>0) setUsers(uData.map(u=>({username:u.username,role:u.role,password:u.password,permissions:u.permissions,id:u.id})));
+      const { data: lData } = await client.from('ktr_locations').select('*').order('created_at');
+      if(lData && lData.length>0) setLocations(lData.map(l=>l.name));
+      return true;
+    }catch(e){
+      console.error('Supabase init error:', e);
+      setDbStatus('error');
+      setDbErrorDetail((e.message||'')+' '+(e.details||'')+' '+(e.hint||''));
+      if(!silent) showToast('❌ Gagal konek: '+(e.message||e)+ ' - Cek console untuk detail','error');
+      return false;
+    }
+  };
+
+  useEffect(()=>{
+    const savedUser = loadJson('ktr_current_user', null);
+    if(savedUser) setUser(savedUser);
+    const savedUrl = localStorage.getItem('ktr_supabase_url') || EMBEDDED_SUPABASE_URL;
+    const savedAnon = localStorage.getItem('ktr_supabase_anon') || EMBEDDED_SUPABASE_ANON_KEY;
+    setCfgUrlInput(savedUrl); setCfgAnonInput(savedAnon);
+    initSupabase(savedUrl, savedAnon, true);
+  },[]);
+
+  useEffect(()=>{ if(user) saveJson('ktr_current_user', user); else localStorage.removeItem('ktr_current_user'); },[user]);
+  useEffect(()=>{
+    const next={}; locations.forEach(loc=>{ if(!harianGrid[loc]) next[loc]={waktu:'',merokok:'Tidak',asbak:'Tidak',iklan:'Tidak',pelanggar:0,tindak:'',nama:''}; });
+    setHarianGrid(prev=>({...next, ...prev}));
+    const nextR={}; locations.forEach(loc=>{ if(!rekapGrid[loc]) nextR[loc]={m1:0,m2:0,m3:0,m4:0,totalBulanIni:0,bulanLalu:0}; });
+    setRekapGrid(prev=>({...nextR, ...prev}));
+    const nextC={}; defaultChecklist.forEach(item=>{ if(!checklistGrid[item.no]) nextC[item.no]={tersedia:'Ya',kondisi:'Baik',catatan:''}; });
+    setChecklistGrid(prev=>({...nextC, ...prev}));
+  },[locations]);
+
+  const getSupabase = ()=> supabaseRef.current;
+
+  const refreshAllLists = async(client=null)=>{
+    const sb = client || getSupabase();
+    if(!sb) return;
+    try{
+      const [h,b,r,l,ba,t] = await Promise.all([
+        sb.from('ktr_harian').select('*').order('tanggal',{ascending:false}).limit(20),
+        sb.from('ktr_bulanan').select('*').order('created_at',{ascending:false}).limit(20),
+        sb.from('ktr_rekap').select('*').order('created_at',{ascending:false}).limit(20),
+        sb.from('ktr_laporan').select('*').order('created_at',{ascending:false}).limit(20),
+        sb.from('ktr_ba').select('*').order('created_at',{ascending:false}).limit(20),
+        sb.from('ktr_teguran').select('*').order('created_at',{ascending:false}).limit(20)
+      ]);
+      if(h.data) setHarianList(h.data);
+      if(b.data) setBulananList(b.data);
+      if(r.data) setRekapList(r.data);
+      if(l.data) setLaporanList(l.data);
+      if(ba.data) setBaList(ba.data);
+      if(t.data) setTeguranList(t.data);
+    }catch(e){ console.warn(e.message); }
+  };
+
+  const simpanDataSupabase = async()=>{
+    const sb = getSupabase();
+    if(!sb || dbStatus!=='connected'){ showToast('❌ Supabase belum konek. Cek Control Panel untuk error detail: '+dbErrorDetail,'error'); setPage('control'); return; }
+    setLoading(true);
+    try{
+      const by=user?.username||'anon';
+      if(activeTab==='harian'){
+        const {error}=await sb.from('ktr_harian').insert([{tanggal:fTgl,shift:fShift,waktu_global:fWaktu,petugas1:fPetugas1,petugas2:fPetugas2,data_grid:harianGrid,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='bulanan'){
+        const {error}=await sb.from('ktr_bulanan').insert([{bulan:bulananBulan,data_grid:bulananGrid,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='rekap'){
+        const {error}=await sb.from('ktr_rekap').insert([{bulan:rekapBulan,data_grid:rekapGrid,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='laporan'){
+        const {error}=await sb.from('ktr_laporan').insert([{bulan:lapBulan,ringkasan:lapRingkasan,kendala:lapKendala,rekomendasi:lapRekomendasi,pelapor:lapPelapor,mengetahui:lapMengetahui,direktur:lapDirektur,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='pendukung' && subTab==='ba'){
+        const {error}=await sb.from('ktr_ba').insert([{nomor:baNomor,tanggal:baTgl,petugas1:baPetugas1,jabatan1:baJab1,petugas2:baPetugas2,jabatan2:baJab2,nama_pelanggar:baPelanggar,status_pelanggar:baStatus,uraian_pelanggaran:baUraian,tindak_lanjut:baTindak,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='pendukung' && subTab==='checklist'){
+        const {error}=await sb.from('ktr_checklist').insert([{bulan:rekapBulan||bulananBulan||getThisMonth(),data_grid:checklistGrid,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='pendukung' && subTab==='teguran'){
+        const {error}=await sb.from('ktr_teguran').insert([{tanggal_cetak:tgTglCetak,nomor_surat:tgNomor,nama_tujuan:tgNama,hari_tgl_pelanggaran:tgHariTgl,jam_pelanggaran:tgJam,lokasi_pelanggaran:tgLokasi,detail_pelanggaran:tgPelanggaran,ketua_tim:tgKetua,created_by:by}]);
+        if(error) throw error;
+      }
+      await refreshAllLists();
+      showToast('✅ Berhasil disimpan ONLINE ke Supabase! User lain tinggal Muat Data.','success');
+    }catch(err){
+      if(err.message && err.message.includes('does not exist')){
+        showToast('❌ Tabel belum ada! Jalankan supabase_schema_v2.sql di SQL Editor Supabase dulu','error');
+      } else {
+        showToast('❌ Gagal simpan: '+err.message,'error');
+      }
+    }
+    setLoading(false);
+  };
+
+  const muatDataSupabase = async()=>{
+    const sb = getSupabase();
+    if(!sb){ showToast('❌ Supabase belum konek','error'); return; }
+    setLoading(true);
+    try{
+      if(activeTab==='harian'){
+        const {data,error}=await sb.from('ktr_harian').select('*').eq('tanggal',fTgl).order('created_at',{ascending:false}).limit(1);
+        if(error) throw error;
+        if(data && data.length>0){ const d=data[0]; setFShift(d.shift||'Pagi'); setFWaktu(d.waktu_global||''); setFPetugas1(d.petugas1||''); setFPetugas2(d.petugas2||''); if(d.data_grid) setHarianGrid(d.data_grid); showToast('Data harian '+fTgl+' dimuat','success'); }
+        else showToast('Tidak ada data pada tanggal tersebut.','warning');
+      }else if(activeTab==='bulanan'){
+        const {data,error}=await sb.from('ktr_bulanan').select('*').eq('bulan',bulananBulan).order('created_at',{ascending:false}).limit(1);
+        if(error) throw error;
+        if(data && data.length>0){ setBulananGrid(data[0].data_grid||{}); showToast('Bulanan '+bulananBulan+' dimuat','success'); }
+      }else if(activeTab==='rekap'){
+        const {data,error}=await sb.from('ktr_rekap').select('*').eq('bulan',rekapBulan).order('created_at',{ascending:false}).limit(1);
+        if(error) throw error;
+        if(data && data.length>0){ setRekapGrid(data[0].data_grid||{}); showToast('Rekap '+rekapBulan+' dimuat','success'); }
+      }else if(activeTab==='laporan'){
+        const {data,error}=await sb.from('ktr_laporan').select('*').order('created_at',{ascending:false}).limit(1);
+        if(error) throw error;
+        if(data && data.length>0){ const d=data[0]; setLapBulan(d.bulan||''); setLapRingkasan(d.ringkasan||''); setLapKendala(d.kendala||''); setLapRekomendasi(d.rekomendasi||''); setLapPelapor(d.pelapor||''); setLapMengetahui(d.mengetahui||''); setLapDirektur(d.direktur||''); showToast('Laporan dimuat','success'); }
+      }else if(activeTab==='pendukung' && subTab==='ba'){
+        const {data,error}=await sb.from('ktr_ba').select('*').order('created_at',{ascending:false}).limit(1);
+        if(error) throw error;
+        if(data && data.length>0){ const d=data[0]; setBaNomor(d.nomor||''); setBaTgl(d.tanggal||''); setBaPetugas1(d.petugas1||''); setBaJab1(d.jabatan1||''); setBaPetugas2(d.petugas2||''); setBaJab2(d.jabatan2||''); setBaPelanggar(d.nama_pelanggar||''); setBaStatus(d.status_pelanggar||'Karyawan'); setBaUraian(d.uraian_pelanggaran||''); setBaTindak(d.tindak_lanjut||''); showToast('BA dimuat','success'); }
+      }else if(activeTab==='pendukung' && subTab==='checklist'){
+        const {error}=await sb.from('ktr_checklist').insert([{bulan:rekapBulan||bulananBulan||getThisMonth(),data_grid:checklistGrid,created_by:by}]);
+        if(error) throw error;
+      }else if(activeTab==='pendukung' && subTab==='teguran'){
+        const {data,error}=await sb.from('ktr_teguran').select('*').order('created_at',{ascending:false}).limit(1);
+        if(error) throw error;
+        if(data && data.length>0){ const d=data[0]; setTgTglCetak(d.tanggal_cetak||getToday()); setTgNomor(d.nomor_surat||''); setTgNama(d.nama_tujuan||''); setTgHariTgl(d.hari_tgl_pelanggaran||''); setTgJam(d.jam_pelanggaran||''); setTgLokasi(d.lokasi_pelanggaran||''); setTgPelanggaran(d.detail_pelanggaran||''); setTgKetua(d.ketua_tim||''); showToast('Teguran dimuat','success'); }
+      }else{ await refreshAllLists(); showToast('Riwayat disegarkan','info'); }
+    }catch(err){
+      if(err.message && err.message.includes('does not exist')){
+        showToast('❌ Tabel belum ada! Jalankan supabase_schema_v2.sql dulu di Supabase SQL Editor','error');
+      } else {
+        showToast('Gagal muat: '+err.message,'error');
+      }
+    }
+    setLoading(false);
+  };
+
+  const loadFromHistory = (type,item)=>{
+    if(type==='harian'){ setFTgl(item.tanggal); setFShift(item.shift); setFWaktu(item.waktu_global||''); setFPetugas1(item.petugas1); setFPetugas2(item.petugas2); setHarianGrid(item.data_grid||{}); setActiveTab('harian'); }
+    else if(type==='bulanan'){ setBulananBulan(item.bulan); setBulananGrid(item.data_grid||{}); setActiveTab('bulanan'); }
+    else if(type==='rekap'){ setRekapBulan(item.bulan); setRekapGrid(item.data_grid||{}); setActiveTab('rekap'); }
+    else if(type==='laporan'){ setLapBulan(item.bulan); setLapRingkasan(item.ringkasan); setLapKendala(item.kendala); setLapRekomendasi(item.rekomendasi); setLapPelapor(item.pelapor); setLapMengetahui(item.mengetahui); setLapDirektur(item.direktur); setActiveTab('laporan'); }
+    else if(type==='ba'){ setBaNomor(item.nomor); setBaTgl(item.tanggal); setBaPetugas1(item.petugas1); setBaJab1(item.jabatan1); setBaPetugas2(item.petugas2); setBaJab2(item.jabatan2); setBaPelanggar(item.nama_pelanggar); setBaStatus(item.status_pelanggar); setBaUraian(item.uraian_pelanggaran); setBaTindak(item.tindak_lanjut); setActiveTab('pendukung'); setSubTab('ba'); }
+    else if(type==='teguran'){ setTgTglCetak(item.tanggal_cetak); setTgNomor(item.nomor_surat); setTgNama(item.nama_tujuan); setTgHariTgl(item.hari_tgl_pelanggaran); setTgJam(item.jam_pelanggaran); setTgLokasi(item.lokasi_pelanggaran); setTgPelanggaran(item.detail_pelanggaran); setTgKetua(item.ketua_tim); setActiveTab('pendukung'); setSubTab('teguran'); }
+    window.scrollTo({top:0,behavior:'smooth'});
+  };
+
+  const handleLogin = ()=>{
+    const sb = getSupabase();
+    if(!sb || dbStatus!=='connected'){ showToast('Supabase belum konek: '+dbErrorDetail,'error'); return; }
+    const uName=loginUsername.trim();
+    if(!uName){ showToast('Masukkan username','warning'); return; }
+    const found=users.find(u=>u.username.toLowerCase()===uName.toLowerCase());
+    if(!found){ showToast('Username tidak ditemukan di Supabase','error'); return; }
+    if((found.password||'123')!==loginPassword){ showToast('Password salah','error'); return; }
+    setUser(found); setPage('app'); setLoginPassword('');
+  };
+  const logout=()=>{ setUser(null); setPage('landing'); localStorage.removeItem('ktr_current_user'); };
+
+  const addUser = async()=>{
+    const sb = getSupabase();
+    if(!sb){ showToast('Supabase belum konek','error'); return; }
+    const name=rbacUsername.trim();
+    if(!name){ showToast('Username wajib','warning'); return; }
+    const pass=rbacPassword.trim()||'123';
+    const perms=rbacPerms;
+    if(editingUser){
+      const {error}=await sb.from('ktr_users').update({username:name,role:rbacRole,password:pass,permissions:perms}).eq('username',editingUser);
+      if(error){ showToast(error.message,'error'); return; }
+      setUsers(prev=>prev.map(u=>u.username===editingUser?{...u,username:name,role:rbacRole,password:pass,permissions:perms}:u));
+      if(user?.username===editingUser) setUser({username:name,role:rbacRole,password:pass});
+      setEditingUser(null);
+      showToast('User diupdate','success');
+    }else{
+      if(users.find(u=>u.username.toLowerCase()===name.toLowerCase())){ showToast('Username sudah ada','warning'); return; }
+      const {error}=await sb.from('ktr_users').insert([{username:name,role:rbacRole,password:pass,permissions:perms}]);
+      if(error){ showToast(error.message,'error'); return; }
+      setUsers(prev=>[...prev,{username:name,role:rbacRole,password:pass,permissions:perms}]);
+      showToast('User baru dibuat di Supabase','success');
+    }
+    setRbacUsername(''); setRbacPassword('');
+  };
+  const startEditUser=(u)=>{ setRbacUsername(u.username); setRbacPassword(u.password); setRbacRole(u.role); setRbacPerms(getUserPermissions(u)); setEditingUser(u.username); };
+  const cancelEditUser=()=>{ setEditingUser(null); setRbacUsername(''); setRbacPassword(''); setRbacRole('admin'); setRbacPerms(defaultPermissions.admin); };
+  const removeUser=async(username)=>{
+    const sb=getSupabase();
+    if(!sb) return;
+    if(users.length<=1){ showToast('Tidak bisa hapus user terakhir','warning'); return; }
+    if(username===user?.username){ showToast('Tidak bisa hapus akun sendiri','warning'); return; }
+    const adminCount=users.filter(u=>u.role==='admin').length;
+    const target=users.find(u=>u.username===username);
+    if(target?.role==='admin' && adminCount<=1){ showToast('Minimal 1 admin harus ada','warning'); return; }
+    if(!confirm('Hapus '+username+'?')) return;
+    const {error}=await sb.from('ktr_users').delete().eq('username',username);
+    if(error){ showToast(error.message,'error'); return; }
+    setUsers(prev=>prev.filter(u=>u.username!==username));
+    if(editingUser===username) cancelEditUser();
+  };
+  const openChangePassword=(targetUsername=null)=>{ setChangePassTarget(targetUsername); setOldPassInput(''); setNewPassInput(''); setConfirmPassInput(''); setShowChangePass(true); };
+  const handleChangePassword=async()=>{
+    const sb=getSupabase();
+    if(!sb){ showToast('Supabase belum konek','error'); return; }
+    if(!newPassInput.trim()){ showToast('Password baru wajib','warning'); return; }
+    if(newPassInput!==confirmPassInput){ showToast('Konfirmasi tidak cocok','warning'); return; }
+    const targetUsername=changePassTarget||user.username;
+    const targetUser=users.find(u=>u.username===targetUsername);
+    if(!targetUser){ showToast('User tidak ditemukan','error'); return; }
+    if(!changePassTarget || changePassTarget===user.username){
+      if(targetUser.password!==oldPassInput){ showToast('Password lama salah','error'); return; }
+    }
+    const {error}=await sb.from('ktr_users').update({password:newPassInput}).eq('username',targetUsername);
+    if(error){ showToast(error.message,'error'); return; }
+    setUsers(prev=>prev.map(u=>u.username===targetUsername?{...u,password:newPassInput}:u));
+    if(targetUsername===user.username) setUser({...user,password:newPassInput});
+    setShowChangePass(false);
+    showToast('Password '+targetUsername+' berhasil diubah','success');
+  };
+
+  const addLocation=async()=>{
+    const sb=getSupabase();
+    if(!sb){ showToast('Supabase belum konek','error'); return; }
+    const name=newLoc.trim()||locName.trim();
+    if(!name||locations.includes(name)) return;
+    const {error}=await sb.from('ktr_locations').insert([{name}]);
+    if(error){ showToast(error.message,'error'); return; }
+    if(!can(user,'tambah_hapus_area') && !can(user,'mengubah_lokasi')){ showToast('Tidak ada hak akses tambah/hapus area','warning'); return; }
+    setLocations(prev=>[...prev,name]);
+    setNewLoc(''); setLocName('');
+    showToast('Lokasi ditambah ke Supabase','success');
+  };
+  const removeLocation=async(name)=>{
+    const sb=getSupabase();
+    if(!sb) return;
+    if(!confirm('Hapus lokasi '+name+'?')) return;
+    const {error}=await sb.from('ktr_locations').delete().eq('name',name);
+    if(error){ showToast(error.message,'error'); return; }
+    setLocations(prev=>prev.filter(l=>l!==name));
+  };
+
+  
+  const generateLaporanOtomatis = () => {
+    if(!can(user,'melihat_laporan')){ showToast('Tidak ada hak akses melihat laporan','warning'); return; }
+    const bulan = bulananBulan || lapBulan || getThisMonth();
+    const totalPatroli = Object.values(bulananGrid).reduce((s,r)=>s+(Number(r.patroli)||0),0);
+    const totalPelanggar = Object.values(bulananGrid).reduce((s,r)=>s+(Number(r.pelanggaran)||0),0);
+    const totalKaryawan = Object.values(bulananGrid).reduce((s,r)=>s+(Number(r.karyawan)||0),0);
+    const totalPengunjung = Object.values(bulananGrid).reduce((s,r)=>s+(Number(r.pengunjung)||0),0);
+    const totalPasien = Object.values(bulananGrid).reduce((s,r)=>s+(Number(r.pasien)||0),0);
+    let lokasiMax = '-';
+    let maxPel = 0;
+    Object.entries(rekapGrid).forEach(([loc,g])=>{ const tot=Number(g.totalBulanIni)||0; if(tot>maxPel){ maxPel=tot; lokasiMax=loc; } });
+    const ringkasan = `Pada bulan ${bulan}, Tim Penegakan KTR RSJD Atma Husada Mahakam telah melaksanakan patroli rutin sebanyak ${totalPatroli} kali di ${locations.length} area. Ditemukan ${totalPelanggar} pelanggaran (Karyawan:${totalKaryawan}, Pengunjung:${totalPengunjung}, Pasien/Keluarga:${totalPasien}). Lokasi terbanyak ${lokasiMax} (${maxPel} pelanggaran).\n\nPatroli dilaksanakan minimal 3x sehari shift pagi/siang/malam. Setiap temuan ditindaklanjuti edukasi, teguran lisan, dan BA.`;
+    const kendala = `Kendala:\n- Masih ditemukan pengunjung merokok di parkir & taman saat jam kunjung\n- Petugas terbatas shift malam\n- Stiker KTR pudar di toilet umum\n\nSolusi:\n- Tambah patroli jam rawan 11-13 & 16-18\n- Koordinasi satpam area parkir\n- Ganti stiker rusak`;
+    const rekomendasi = `Rekomendasi:\n1. Spanduk baru area parkir & kantin\n2. Sosialisasi ulang Perda KTR Kaltim No.5/2017 ke karyawan baru\n3. CCTV taman/selasar\n4. Evaluasi mingguan\n5. Reward area nol pelanggaran`;
+    setLapBulan(bulan);
+    setLapRingkasan(ringkasan);
+    setLapKendala(kendala);
+    setLapRekomendasi(rekomendasi);
+    setLapPelapor(fPetugas1||user?.username||'Tim KTR');
+    setLapMengetahui('Kabid Penunjang Medik');
+    setLapDirektur('Direktur RSJD Atma Husada Mahakam');
+    showToast('Contoh redaksi otomatis dibuat, silakan edit','success');
+  };
+  const printOnly = (id) => {
+    const el = document.getElementById(id);
+    if(!el){ showToast('Elemen cetak tidak ditemukan','error'); return; }
+    const win = window.open('', '_blank', 'width=900,height=700');
+    if(!win){ showToast('Pop-up diblokir, izinkan pop-up untuk cetak','warning'); return; }
+    const htmlContent = '<html><head><title>Cetak KTR - Hanya Isi</title><style>body{font-family:Inter,sans-serif;padding:20px;background:white} table{width:100%;border-collapse:collapse} th,td{border:1px solid #ddd;padding:6px;font-size:11px} input,select,textarea{border:1px solid #ccc;padding:3px} .no-print{display:none!important} @media print{body{padding:0}}</style></head><body>' + el.innerHTML + '</body></html>';
+    win.document.write(htmlContent);
+    win.document.close();
+    setTimeout(()=>{ win.focus(); win.print(); }, 600);
+  };
+  const handlePrint = (tab) => {
+    if(tab==='ba' && !can(user,'cetak_BA')){ showToast('Tidak ada akses cetak BA','warning'); return; }
+    if(tab==='teguran' && !can(user,'cetak_Teguran')){ showToast('Tidak ada akses cetak Teguran','warning'); return; }
+    if(tab==='laporan' && !can(user,'melihat_laporan')){ showToast('Tidak ada akses melihat laporan','warning'); return; }
+    // Cetak hanya isi sesuai tab
+    const map = {harian:'harianPrint', bulanan:'bulananPrint', rekap:'rekapPrint', laporan:'laporanPrint', checklist:'checklistPrint', ba:'baContent', teguran:'teguranContent'};
+    const id = map[tab];
+    if(id) printOnly(id);
+    else window.print();
+  };
+
+  const handleSaveSupabaseConfig = async()=>{
+    const url=cfgUrlInput.trim();
+    const anon=cfgAnonInput.trim();
+    if(!url || !anon){ showToast('URL dan ANON KEY wajib diisi','warning'); return; }
+    setLoading(true);
+    const ok = await initSupabase(url, anon, false);
+    setLoading(false);
+  };
+
+  
+  // ================= AUTO REKAP ANTAR TAB - BARU =================
+  const autoRekapFromCurrentHarian = () => {
+    const day = new Date(fTgl).getDate();
+    const totalPatroli = Object.values(harianGrid).filter(g => g.waktu && String(g.waktu).trim()!=='').length; // jumlah jam/waktu patroli yang diinput
+    const totalPelanggar = Object.values(harianGrid).reduce((s,g) => s + (Number(g.pelanggar)||0), 0);
+    // Update bulanan untuk hari ini
+    setBulananGrid(prev => {
+      const existing = prev[day] || {};
+      return {...prev, [day]: {...existing, patroli: totalPatroli, pelanggaran: totalPelanggar, petugas: fPetugas1 || existing.petugas || '', lokasi: existing.lokasi || '' }};
+    });
+    // Update rekap area - hitung mingguan dari data harian hari ini
+    const weekKey = 'm' + Math.min(4, Math.ceil(day/7));
+    setRekapGrid(prev => {
+      const next = {...prev};
+      locations.forEach(loc => {
+        const pel = Number(harianGrid[loc]?.pelanggar||0);
+        if(!next[loc]) next[loc] = {m1:0,m2:0,m3:0,m4:0,totalBulanIni:0,bulanLalu:0};
+        // Untuk auto yang akurat, kita rebuild total bulan ini dari bulananGrid + hari ini
+        // Sederhananya, update minggu ini jika ada pelanggar
+        if(pel>0){
+          // Jika sebelumnya sudah ada nilai di minggu itu untuk hari yang sama, kita ganti bukan tambah - jadi butuh rekap full
+          // Untuk V3 ini kita pakai approach tambah, tapi user bisa klik Rekap Full untuk akurat
+          next[loc] = {...next[loc], [weekKey]: pel };
+        }
+      });
+      return next;
+    });
+    showToast('✅ Data harian tgl '+day+' otomatis masuk ke Bulanan & Rekap (minggu '+Math.min(4, Math.ceil(day/7))+')', 'success');
+  };
+
+  const autoRekapFullBulan = async (bulanStr) => {
+    const sb = getSupabase();
+    if(!sb){ showToast('Supabase belum konek','error'); return; }
+    setLoading(true);
+    try{
+      // Ambil semua harian untuk bulan tersebut
+      const start = bulanStr + '-01';
+      const endDate = new Date(bulanStr + '-01');
+      endDate.setMonth(endDate.getMonth()+1);
+      const end = endDate.toISOString().slice(0,10);
+      const { data, error } = await sb.from('ktr_harian').select('*').gte('tanggal', start).lt('tanggal', end).order('tanggal',{ascending:true});
       if(error) throw error;
-      fileUrl=supabaseClient.storage.from('ktr-dokumentasi').getPublicUrl(data.path).data.publicUrl;
+      if(!data || data.length===0){
+        showToast('Tidak ada data harian untuk bulan '+bulanStr,'warning');
+        setLoading(false);
+        return;
+      }
+      // Build bulananGrid baru
+      const newBulanan = {...bulananGrid};
+      const rekapTemp = {};
+      locations.forEach(loc => { rekapTemp[loc] = {m1:0,m2:0,m3:0,m4:0,totalBulanIni:0,bulanLalu:0}; });
+      
+      // Group by tanggal
+      const byDate = {};
+      data.forEach(row => {
+        byDate[row.tanggal] = row;
+      });
+      
+      for(let d=1; d<=31; d++){
+        const dateStr = bulanStr + '-' + String(d).padStart(2,'0');
+        const row = byDate[dateStr];
+        if(row && row.data_grid){
+          const grid = row.data_grid;
+          const totalPatroli = Object.values(grid).filter(g => g.waktu && String(g.waktu).trim()!=='').length;
+          const totalPelanggar = Object.values(grid).reduce((s,g) => s + (Number(g.pelanggar)||0), 0);
+          newBulanan[d] = { ...(newBulanan[d]||{}), patroli: totalPatroli, pelanggaran: totalPelanggar, petugas: row.petugas1 || '' };
+          // Untuk rekap
+          Object.entries(grid).forEach(([loc, g]) => {
+            const pel = Number(g.pelanggar||0);
+            if(pel>0){
+              const week = Math.min(4, Math.ceil(d/7));
+              const wk = 'm'+week;
+              if(!rekapTemp[loc]) rekapTemp[loc] = {m1:0,m2:0,m3:0,m4:0,totalBulanIni:0,bulanLalu:0};
+              rekapTemp[loc][wk] = (Number(rekapTemp[loc][wk])||0) + pel;
+              rekapTemp[loc].totalBulanIni = (Number(rekapTemp[loc].totalBulanIni)||0) + pel;
+            }
+          });
+        }
+      }
+      setBulananGrid(newBulanan);
+      // Merge rekap dengan yang ada (bulan lalu tetap)
+      setRekapGrid(prev => {
+        const merged = {...prev};
+        Object.keys(rekapTemp).forEach(loc => {
+          merged[loc] = {...(merged[loc]||{m1:0,m2:0,m3:0,m4:0,totalBulanIni:0,bulanLalu:0}), ...rekapTemp[loc], bulanLalu: merged[loc]?.bulanLalu||0 };
+        });
+        return merged;
+      });
+      showToast('✅ Auto-rekap selesai! '+data.length+' hari ditarik, Bulanan & Rekap Area ter-update otomatis','success');
+    }catch(e){
+      showToast('Gagal auto-rekap: '+e.message,'error');
     }
-    const payload={judul, kategori:kat, deskripsi:desc, tanggal:tgl||null, file_url:fileUrl, is_published: isPublish};
-    const {error}=await supabaseClient.from('dok_pendukung').insert(payload);
-    if(error) throw error;
-    alert('✅ Dokumen tersimpan & '+(isPublish?'dipublish! Link publik aktif':'disimpan sebagai draft'));
-    document.getElementById('d_judul').value=''; document.getElementById('d_desc').value=''; fileInput.value='';
-    loadDok();
-  }catch(e){alert('Gagal simpan dokumen: '+e.message+'\nPastikan bucket ktr-dokumentasi sudah dibuat public');}
-}
-async function loadDok(){
-  const el=document.getElementById('dokList');
-  if(!supabaseClient){el.innerHTML='<div class="text-slate-400 p-4 bg-white border rounded-xl">Offline - isi key untuk load dokumen yang dipublish</div>'; return;}
-  const {data, error} = await supabaseClient.from('dok_pendukung').select('*').order('created_at',{ascending:false}).limit(20);
-  if(error){el.innerHTML=`<div class="text-red-500">Error: ${error.message} - jalankan SQL schema terbaru</div>`; return;}
-  if(!data || !data.length){el.innerHTML='<div class="bg-white border border-dashed border-[#DBEAFE] rounded-xl p-6 text-center text-slate-400">Belum ada dokumen - kosong tanpa dummy. Input di atas untuk publish pertama.</div>'; return;}
-  el.innerHTML=data.map(d=>`
-    <div class="bg-white border border-[#DBEAFE] rounded-xl p-3 flex gap-3">
-      <div class="w-10 h-10 rounded-lg bg-[#DBEAFE] flex items-center justify-center text-[#1E40AF] font-bold text-[11px]">${d.kategori.slice(0,2)}</div>
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2"><b class="truncate">${d.judul}</b> ${d.is_published?'<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">Published</span>':'<span class="text-[10px] px-1.5 py-0.5 rounded-full bg-slate-100 text-slate-500">Draft</span>'}</div>
-        <div class="text-[11px] text-slate-500">${d.kategori} • ${d.tanggal||''}</div>
-        <div class="text-[11px] text-slate-600 truncate">${d.deskripsi||''}</div>
-        ${d.file_url?`<a href="${d.file_url}" target="_blank" class="text-[11px] text-[#1E40AF] hover:underline mt-1 inline-block">📎 Buka File / Publish Link</a>`:''}
-        <div class="flex gap-2 mt-2">
-          <button onclick="togglePublish('${d.id}', ${!d.is_published})" class="text-[11px] px-2 py-1 rounded-lg border ${d.is_published?'bg-amber-50':'bg-emerald-50'}">${d.is_published?'Unpublish':'Publish'}</button>
-          <button onclick="deleteDok('${d.id}')" class="text-[11px] px-2 py-1 rounded-lg border bg-red-50 text-red-600">Hapus</button>
+    setLoading(false);
+  };
+
+  const TabBtn=({id,label,icon})=>(<button onClick={()=>setActiveTab(id)} className={`flex items-center gap-2 px-4 py-2.5 text-[13px] font-semibold rounded-lg border whitespace-nowrap transition-all ${activeTab===id?'bg-[#0B4F30] text-white border-[#0B4F30] shadow':'bg-white text-[#0B4F30] border-[#DDE8E0] hover:bg-[#F2F8F3]'}`}><Icon path={icon} className="w-4 h-4"/>{label}</button>);
+
+  if(page==='landing'){
+    return (
+      <div className="min-h-screen">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-10">
+          <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr]">
+            <div className="space-y-6">
+              <div className="rounded-[32px] bg-[#F3FBF5] border border-[#D6E9DA] p-8">
+                <div className="flex items-center gap-3 mb-4"><div className="w-12 h-12 rounded-2xl bg-[#0B4F30] text-white grid place-items-center font-bold">KTR</div><div><div className="text-xs uppercase tracking-[0.2em] font-bold text-[#0B4F30]/70">ONLINE SIAP PAKAI - KEY EMBEDDED</div><div className="text-2xl font-bold text-[#0B4F30]">Sistem Dokumentasi KTR</div></div></div>
+                <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold border ${dbStatus==='connected'?'bg-emerald-50 border-emerald-200 text-emerald-700':dbStatus==='connecting'?'bg-amber-50 border-amber-200 text-amber-700':'bg-red-50 border-red-200 text-red-700'}`}><span className={`w-2 h-2 rounded-full ${dbStatus==='connected'?'bg-emerald-500 animate-pulse':dbStatus==='connecting'?'bg-amber-500':'bg-red-500'}`}></span>{dbStatus==='connected'?'Supabase Terhubung ONLINE':dbStatus==='connecting'?'Menghubungkan...':'ERROR - '+dbErrorDetail}</div>
+                {dbStatus==='connected' && <div className="mt-3 text-[11px] bg-white p-3 rounded-xl border">✅ URL & KEY sudah embedded di file ini. User lain tinggal buka file ini langsung tanpa setting. Tidak ada mode offline.</div>}
+                {dbStatus!=='connected' && <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800"><strong>Error Detail:</strong> {dbErrorDetail || 'Unknown'}<br/><br/>Solusi:<br/>1. Pastikan sudah run <code>supabase_schema_v2.sql</code> di Supabase SQL Editor<br/>2. Cek ANON KEY benar<br/>3. Klik Simpan & Test di Control Panel</div>}
+                <div className="grid md:grid-cols-2 gap-3 mt-6"><button onClick={()=>{ if(dbStatus!=='connected'){ setPage('control'); } else setPage('app'); }} className="w-full bg-[#0B4F30] text-white py-3 rounded-xl font-semibold">Buka Form KTR ONLINE</button><button onClick={()=>setPage('control')} className="w-full bg-white border text-[#0B4F30] py-3 rounded-xl font-semibold">Control Panel + Config Supabase</button></div>
+              </div>
+            </div>
+            <div className="rounded-[24px] bg-white border p-6">
+              <div className="text-sm font-semibold text-[#0B4F30] mb-4">Login ONLINE</div>
+              {user ? (
+                <div className="space-y-3"><div className="bg-[#F3FBF5] p-3 rounded-xl text-sm">Login sebagai <strong>{user.username}</strong> ({user.role}) - ONLINE</div><button onClick={()=>openChangePassword()} className="w-full border border-[#0B4F30] text-[#0B4F30] py-2.5 rounded-xl font-semibold flex items-center justify-center gap-2"><Icon path={icLock} className="w-4 h-4"/>Ganti Password</button><button onClick={logout} className="w-full bg-amber-500 text-white py-2.5 rounded-xl">Logout</button></div>
+              ) : (
+                <div className="space-y-3"><input value={loginUsername} onChange={e=>setLoginUsername(e.target.value)} placeholder="Username (admin)" className="w-full border rounded-xl px-3 py-2.5"/><div className="relative"><input type={showPass?'text':'password'} value={loginPassword} onChange={e=>setLoginPassword(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handleLogin()} placeholder="Password 123" className="w-full border rounded-xl px-3 py-2.5 pr-16"/><button onClick={()=>setShowPass(!showPass)} className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-slate-500">{showPass?'Hide':'Show'}</button></div><button onClick={handleLogin} className="w-full bg-[#0B4F30] text-white py-2.5 rounded-xl font-semibold">Masuk ONLINE</button></div>
+              )}
+            </div>
+          </div>
+        </div>
+        {showChangePass && (
+          <div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4"><div className="bg-white rounded-[24px] p-6 w-full max-w-md"><div className="font-bold text-[#0B4F30] mb-4 flex items-center gap-2"><Icon path={icLock} className="w-5 h-5"/>{changePassTarget?`Ganti Password ${changePassTarget}`:'Ganti Password Saya'}</div><div className="space-y-3">{(!changePassTarget||changePassTarget===user?.username)&&<input type="password" value={oldPassInput} onChange={e=>setOldPassInput(e.target.value)} placeholder="Password Lama" className="w-full border rounded-xl px-3 py-2.5"/>}<input type="password" value={newPassInput} onChange={e=>setNewPassInput(e.target.value)} placeholder="Password Baru" className="w-full border rounded-xl px-3 py-2.5"/><input type="password" value={confirmPassInput} onChange={e=>setConfirmPassInput(e.target.value)} placeholder="Konfirmasi" className="w-full border rounded-xl px-3 py-2.5"/></div><div className="flex gap-2 mt-5"><button onClick={()=>setShowChangePass(false)} className="flex-1 border rounded-xl py-2.5">Batal</button><button onClick={handleChangePassword} className="flex-1 bg-[#0B4F30] text-white rounded-xl py-2.5">Simpan</button></div></div></div>
+        )}
+        {toast && <div className={`fixed bottom-24 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-sm font-semibold shadow-xl z-[200] max-w-[90%] text-center ${toast.type==='error'?'bg-red-600 text-white':toast.type==='success'?'bg-[#0B4F30] text-white':'bg-amber-500 text-white'}`}>{toast.msg}</div>}
+      </div>
+    );
+  }
+
+  if(page==='control'){
+    if(!user || user.role!=='admin') return <div className="max-w-[1280px] mx-auto px-8 py-10 text-center"><div className="bg-white border border-red-200 rounded-[28px] p-8"><div className="text-xl font-bold text-red-600">Akses Ditolak - Hanya Admin</div><button onClick={()=>setPage('landing')} className="mt-6 bg-[#0B4F30] text-white px-5 py-3 rounded-xl">Ke Landing</button></div></div>;
+    return (
+      <div className="min-h-screen">
+        <div className="bg-white border-b sticky top-0 z-30"><div className="max-w-[1280px] mx-auto px-8 py-4 flex justify-between items-center"><div className="font-bold text-[#0B4F30] flex items-center gap-2"><Icon path={icShield} className="w-5 h-5"/>Control Panel - ONLINE + Config Supabase</div><div className="flex gap-2"><button onClick={()=>setPage('landing')} className="border px-4 py-2 rounded-full text-sm">Landing</button><button onClick={()=>setPage('app')} className="border px-4 py-2 rounded-full text-sm">Form KTR</button><button onClick={logout} className="bg-red-600 text-white px-4 py-2 rounded-full text-sm">Logout {user.username}</button></div></div></div>
+        <div className="max-w-[1280px] mx-auto px-8 py-8 grid lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-3 bg-white border-2 border-[#0B4F30]/20 rounded-[28px] p-6 shadow-sm">
+            <div className="flex items-center gap-2 mb-4"><Icon path={icDatabase} className="w-5 h-5 text-[#0B4F30]"/><div className="text-lg font-bold text-[#0B4F30]">Konfigurasi Supabase - Sudah Embedded + Bisa Diedit</div><span className={`ml-2 text-xs px-3 py-1 rounded-full font-bold ${dbStatus==='connected'?'bg-emerald-100 text-emerald-700':'bg-red-100 text-red-700'}`}>{dbStatus.toUpperCase()}</span></div>
+            {dbErrorDetail && <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-xl text-xs font-mono text-red-700">Detail Error: {dbErrorDetail}</div>}
+            <div className="grid md:grid-cols-2 gap-4">
+              <div><label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Supabase URL (Embedded)</label><input value={cfgUrlInput} onChange={e=>setCfgUrlInput(e.target.value)} className="w-full border rounded-xl px-3 py-2.5 mt-1 font-mono text-sm"/></div>
+              <div><label className="text-[11px] font-bold uppercase tracking-widest text-slate-500">Supabase ANON KEY (Embedded Real)</label><div className="relative"><input type={showPass?'text':'password'} value={cfgAnonInput} onChange={e=>setCfgAnonInput(e.target.value)} className="w-full border rounded-xl px-3 py-2.5 mt-1 font-mono text-[11px] pr-16"/><button onClick={()=>setShowPass(!showPass)} className="absolute right-2 top-1/2 text-[11px] mt-1">{showPass?'Hide':'Show'}</button></div></div>
+            </div>
+            <div className="flex gap-2 mt-4"><button onClick={handleSaveSupabaseConfig} disabled={loading} className="bg-[#0B4F30] text-white px-6 py-2.5 rounded-xl font-semibold disabled:opacity-50">{loading?'Menyambungkan...':'Simpan & Test Koneksi ONLINE'}</button><button onClick={()=>{ setCfgUrlInput(EMBEDDED_SUPABASE_URL); setCfgAnonInput(EMBEDDED_SUPABASE_ANON_KEY); }} className="border px-5 py-2.5 rounded-xl font-semibold">Reset ke Embedded Asli</button></div>
+            <div className="mt-3 text-[11px] bg-[#F3FBF5] border p-3 rounded-xl">✅ KEY ini sudah embedded di file. User lain tinggal buka file ini tanpa input ulang. Kalau masih ERROR, pastikan sudah <strong>RUN supabase_schema_v2.sql di SQL Editor</strong>. Error "does not exist" = tabel belum dibuat.</div>
+          </div>
+
+          <div className="lg:col-span-2 bg-white border rounded-[28px] p-6">
+            <div className="flex justify-between items-center mb-4"><div className="text-lg font-bold text-[#0B4F30]">User Management ONLINE</div>{editingUser&&<span className="text-xs bg-amber-100 text-amber-700 px-3 py-1 rounded-full">Edit {editingUser}</span>}</div>
+            <div className="grid md:grid-cols-3 gap-3 mb-4"><input value={rbacUsername} onChange={e=>setRbacUsername(e.target.value)} placeholder="Username" className="border rounded-xl px-3 py-2.5"/><div className="relative"><input type={showPass?'text':'password'} value={rbacPassword} onChange={e=>setRbacPassword(e.target.value)} placeholder="Password" className="border rounded-xl px-3 py-2.5 w-full pr-12"/><button onClick={()=>setShowPass(!showPass)} className="absolute right-2 top-1/2 -translate-y-1/2 text-[11px]">{showPass?'Hide':'Show'}</button></div><select value={rbacRole} onChange={e=>{const r=e.target.value; setRbacRole(r); if(r==='admin') setRbacPerms(defaultPermissions.admin); else if(r==='editor') setRbacPerms(defaultPermissions.editor); else setRbacPerms(defaultPermissions.viewer);}} className="border rounded-xl px-3 py-2.5"><option value="admin">Admin</option><option value="editor">Editor</option><option value="viewer">Viewer</option></select></div>
+            <div className="border rounded-xl p-3 mb-4 bg-[#FCFFFD]"><div className="text-[11px] font-bold text-[#0B4F30] mb-2">HAK AKSES GRANULAR</div><div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">{Object.keys(defaultPermissions.admin).map(perm=>(<label key={perm} className="flex items-center gap-2 border rounded-lg px-2 py-2 bg-white"><input type="checkbox" checked={rbacPerms[perm]||false} onChange={e=>setRbacPerms({...rbacPerms,[perm]:e.target.checked})} />{perm.replaceAll('_',' ')}</label>))}</div></div>
+
+            <div className="flex gap-2"><button onClick={addUser} className={`flex-1 ${editingUser?'bg-amber-600':'bg-[#0B4F30]'} text-white py-2.5 rounded-xl font-semibold`}>{editingUser?'Update Pengguna':'Simpan Pengguna'}</button>{editingUser&&<button onClick={cancelEditUser} className="border px-5 rounded-xl">Batal</button>}</div>
+            <table className="w-full text-sm mt-6"><thead><tr className="text-[11px] uppercase text-slate-400 border-b"><th className="text-left py-2">User</th><th className="text-left">Role</th><th className="text-left">Pass</th><th className="text-right">Aksi</th></tr></thead><tbody>{users.map((u,i)=><tr key={i} className="border-b"><td className="py-3"><strong>{u.username}</strong>{u.username===user.username&&<span className="ml-2 text-[10px] bg-[#0B4F30] text-white px-2 py-0.5 rounded-full">YOU</span>}</td><td><span className={`text-[11px] px-2 py-1 rounded-full ${u.role==='admin'?'bg-purple-100 text-purple-700':u.role==='editor'?'bg-blue-100 text-blue-700':'bg-slate-100'}`}>{u.role}</span></td><td className="font-mono text-xs">{u.password}</td><td className="text-right"><div className="flex justify-end gap-1"><button onClick={()=>startEditUser(u)} className="border px-2.5 py-1 rounded-lg text-xs">Edit</button><button onClick={()=>openChangePassword(u.username)} className="border border-amber-200 text-amber-700 px-2.5 py-1 rounded-lg text-xs">Pass</button><button onClick={()=>removeUser(u.username)} className="border border-red-200 text-red-600 px-2.5 py-1 rounded-lg text-xs">Hapus</button></div></td></tr>)}</tbody></table>
+          </div>
+          <div className="bg-white border rounded-[28px] p-6"><div className="font-bold text-[#0B4F30] mb-4">Lokasi (Supabase ONLINE)</div><input value={locName} onChange={e=>setLocName(e.target.value)} placeholder="Nama lokasi baru" className="w-full border rounded-xl px-3 py-2.5 mb-2"/><button onClick={addLocation} className="w-full bg-[#0B4F30] text-white py-2.5 rounded-xl mb-4">Tambah Lokasi</button><div className="space-y-1 max-h-[400px] overflow-y-auto">{locations.map((loc,i)=><div key={i} className="flex justify-between items-center border rounded-xl px-3 py-2"><span>{loc}</span><button onClick={()=>removeLocation(loc)} className="text-red-600 text-xs border border-red-200 px-2 py-1 rounded-full">Hapus</button></div>)}</div></div>
+        </div>
+        {showChangePass&&<div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4"><div className="bg-white rounded-[24px] p-6 w-full max-w-md"><div className="font-bold mb-4">Ganti Password {changePassTarget||''}</div><div className="space-y-3">{(!changePassTarget||changePassTarget===user.username)&&<input type="password" value={oldPassInput} onChange={e=>setOldPassInput(e.target.value)} placeholder="Password Lama" className="w-full border rounded-xl px-3 py-2.5"/>}<input type="password" value={newPassInput} onChange={e=>setNewPassInput(e.target.value)} placeholder="Password Baru" className="w-full border rounded-xl px-3 py-2.5"/><input type="password" value={confirmPassInput} onChange={e=>setConfirmPassInput(e.target.value)} placeholder="Konfirmasi" className="w-full border rounded-xl px-3 py-2.5"/></div><div className="flex gap-2 mt-5"><button onClick={()=>setShowChangePass(false)} className="flex-1 border rounded-xl py-2.5">Batal</button><button onClick={handleChangePassword} className="flex-1 bg-[#0B4F30] text-white rounded-xl py-2.5">Simpan</button></div></div></div>}
+        {toast&&<div className={`fixed bottom-10 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-sm font-bold shadow-xl z-[200] max-w-[90%] text-center ${toast.type==='error'?'bg-red-600 text-white':'bg-[#0B4F30] text-white'}`}>{toast.msg}</div>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen pb-28">
+      <div className="bg-white border-b sticky top-0 z-20">
+        <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-4 flex flex-col lg:flex-row justify-between gap-3">
+          <div><div className="text-[11px] tracking-[0.18em] font-bold text-[#0B4F30]/70 uppercase flex items-center gap-2">PEMERINTAH PROVINSI KALTIM <span className={`px-2 py-0.5 rounded-full text-[9px] border ${dbStatus==='connected'?'bg-emerald-50 border-emerald-200 text-emerald-700':'bg-red-50 border-red-200 text-red-700'}`}>{dbStatus.toUpperCase()} ONLINE ONLY</span></div><div className="text-[18px] md:text-[22px] font-bold text-[#0B4F30]">RSJD ATMA HUSADA MAHAKAM</div><div className="text-[12px] font-semibold text-slate-700">TIM KTR — Jl. Kakap No.23, Samarinda</div></div>
+          <div className="flex flex-wrap gap-2 items-center"><span className="text-xs bg-[#F3FBF5] border px-3 py-1.5 rounded-full">Login: <strong>{user.username}</strong> ({user.role})</span><button onClick={()=>openChangePassword()} className="rounded-full border border-[#0B4F30] text-[#0B4F30] px-3 py-2 text-xs font-bold flex items-center gap-1"><Icon path={icLock} className="w-3 h-3"/>Ganti Password</button><button onClick={()=>setPage('landing')} className="rounded-full border px-4 py-2 text-sm">Landing</button>{user.role==='admin'&&<button onClick={()=>setPage('control')} className="rounded-full border px-4 py-2 text-sm">Control Panel</button>}<button onClick={logout} className="rounded-full bg-[#0B4F30] text-white px-4 py-2 text-sm">Logout</button></div>
         </div>
       </div>
+
+      <div className="max-w-[1280px] mx-auto px-4 md:px-8 py-6">
+        {dbStatus!=='connected' && (
+          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+            <div className="text-sm text-red-800 font-bold">Supabase belum terhubung ONLINE</div>
+            <div className="text-xs text-red-700 mt-1 font-mono break-all">Error: {dbErrorDetail}</div>
+            <div className="text-xs text-red-700 mt-2">Solusi:<br/>1. Buka Supabase SQL Editor {'>'} Run <strong>supabase_schema_v2.sql</strong> (jika error "does not exist")<br/>2. Cek URL & KEY di Control Panel<br/>3. Klik Simpan & Test Koneksi</div>
+            <button onClick={()=>setPage('control')} className="mt-3 bg-red-600 text-white px-4 py-2 rounded-xl text-sm">Ke Control Panel Config</button>
+          </div>
+        )}
+        <div className="bg-white rounded-[16px] border shadow-sm overflow-hidden">
+          <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4 border-b bg-[#FBFFFC]">
+            <div className="flex items-center gap-3"><div className="w-9 h-9 rounded-lg bg-[#0B4F30] text-white flex items-center justify-center"><Icon path={activeTab==='harian'?icClipCheck:activeTab==='bulanan'?icCalendar:activeTab==='rekap'?icChartCol:activeTab==='laporan'?icFileChart:icFileText} className="w-4 h-4"/></div><div><div className="text-[13px] font-bold text-[#0B4F30]">FORM-KTR-01 - ONLINE Supabase - KEY Embedded</div><div className="text-[11px] text-slate-500">Tidak ada offline • Semua tersimpan cloud • User lain tinggal pakai file ini</div></div></div>
+          </div>
+
+          <div className="px-5 py-6">
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2 scrollbar-hide">
+              <TabBtn id="harian" label="Form Harian" icon={icClipCheck}/>
+              <TabBtn id="bulanan" label="Form Bulanan" icon={icCalendar}/>
+              <TabBtn id="rekap" label="Rekap Area" icon={icChartCol}/>
+              <TabBtn id="laporan" label="Laporan KTR" icon={icFileChart}/>
+              <TabBtn id="pendukung" label="Dokumen Pendukung" icon={icFileText}/>
+            </div>
+
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6 text-[11px]">
+              <div className="border rounded-lg px-3 py-2.5 bg-[#FCFFFD]"><div className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Tanggal</div><input type="date" value={fTgl} onChange={e=>setFTgl(e.target.value)} className="w-full bg-transparent border-b pb-1 font-semibold outline-none"/></div>
+              <div className="border rounded-lg px-3 py-2.5 bg-[#FCFFFD]"><div className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Shift / Waktu</div><div className="flex gap-2"><select value={fShift} onChange={e=>setFShift(e.target.value)} className="bg-transparent border-b pb-1 font-semibold w-full outline-none"><option>Pagi</option><option>Siang</option><option>Malam</option></select><input type="time" value={fWaktu} onChange={e=>setFWaktu(e.target.value)} className="bg-transparent border-b pb-1 font-semibold w-full outline-none"/></div></div>
+              <div className="border rounded-lg px-3 py-2.5 bg-[#FCFFFD]"><div className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold mb-1">Petugas KTR</div><input type="text" value={fPetugas1} onChange={e=>setFPetugas1(e.target.value)} placeholder="1. Nama Petugas" className="w-full bg-transparent border-b mb-1 outline-none text-[11px]"/><input type="text" value={fPetugas2} onChange={e=>setFPetugas2(e.target.value)} placeholder="2. Nama Petugas" className="w-full bg-transparent border-b outline-none text-[11px]"/></div>
+              <div className="border rounded-lg px-3 py-2.5 bg-[#FCFFFD]"><div className="text-[10px] uppercase tracking-widest text-slate-400 font-semibold">Paraf Ka. Tim KTR</div><div className="mt-4 border-b border-dotted h-6"></div></div>
+            </div>
+
+            {activeTab==='harian' && (
+              <div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3"><div className="flex items-center gap-2"><h2 className="text-[14px] font-bold text-[#0B4F30]">Kendali Harian Patroli KTR</h2><span className="text-[10px] px-2 py-0.5 rounded-full bg-[#E7F3EC] text-[#0B4F30] font-semibold">ONLINE - Auto ke Bulanan & Rekap</span></div><button onClick={autoRekapFromCurrentHarian} className="px-3 py-1.5 bg-amber-500 text-white rounded-lg text-[11px] font-bold">⚡ Masukkan ke Bulanan & Rekap (Hari Ini)</button></div>
+                <div className="flex justify-end mb-2 no-print"><button onClick={()=>printOnly('harianPrint')} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold">🖨️ Cetak Harian - Hanya Isi</button></div><div id="harianPrint" className="overflow-x-auto border rounded-xl print-area"><table className="w-full border-collapse text-[11px] min-w-[980px]"><thead><tr className="bg-[#0B4F30] text-white"><th className="border border-[#0B4F30] px-2 py-2.5 w-[36px]">No</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[100px]">Waktu</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[160px] text-left">Lokasi / Area</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[80px]">Merokok?</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[80px]">Asbak?</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[80px]">Iklan?</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[60px]">Pelanggar</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[160px] text-left">Tindak Lanjut</th><th className="border border-[#0B4F30] px-2 py-2.5 w-[120px] text-left">Nama Petugas</th></tr></thead><tbody>{locations.map((loc,i)=>(<tr key={i} className={i%2===0?'bg-white':'bg-[#FBFFFC]'}><td className="border px-2 py-2 text-center">{i+1}</td><td className="border px-1 py-1"><input type="time" value={harianGrid[loc]?.waktu||''} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],waktu:e.target.value}})} className="w-full border rounded px-1 py-1"/></td><td className="border px-2 py-2"><div className="flex justify-between items-center"><span>{loc}</span><button onClick={()=>removeLocation(loc)} className="text-red-400 ml-2">×</button></div></td><td className="border px-1 py-1"><select value={harianGrid[loc]?.merokok||'Tidak'} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],merokok:e.target.value}})} className="w-full border rounded px-1 py-1"><option>Tidak</option><option>Ya</option></select></td><td className="border px-1 py-1"><select value={harianGrid[loc]?.asbak||'Tidak'} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],asbak:e.target.value}})} className="w-full border rounded"><option>Tidak</option><option>Ya</option></select></td><td className="border px-1 py-1"><select value={harianGrid[loc]?.iklan||'Tidak'} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],iklan:e.target.value}})} className="w-full border rounded"><option>Tidak</option><option>Ya</option></select></td><td className="border px-1 py-1"><input type="number" min="0" value={harianGrid[loc]?.pelanggar||0} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],pelanggar:e.target.value}})} className="w-full border rounded text-center"/></td><td className="border px-1 py-1"><input type="text" value={harianGrid[loc]?.tindak||''} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],tindak:e.target.value}})} className="w-full border rounded px-1"/></td><td className="border px-1 py-1"><input type="text" value={harianGrid[loc]?.nama||''} onChange={e=>setHarianGrid({...harianGrid,[loc]:{...harianGrid[loc],nama:e.target.value}})} className="w-full border rounded px-1"/></td></tr>))}<tr className="bg-slate-50"><td className="border px-2 text-center">+</td><td colSpan="8" className="border px-2 py-1"><div className="flex gap-2 max-w-sm"><input type="text" value={newLoc} onChange={e=>setNewLoc(e.target.value)} placeholder="Ketik area/lokasi baru..." className="flex-1 border rounded px-2 py-1 bg-white"/><button onClick={addLocation} className="bg-[#0B4F30] text-white px-3 py-1 rounded">Tambah Lokasi</button></div></td></tr></tbody></table></div>
+                <div className="mt-6"><div className="text-[12px] font-bold text-[#0B4F30] mb-2">Riwayat Harian ONLINE</div><div className="grid gap-2 max-h-[200px] overflow-y-auto">{harianList.map(h=><div key={h.id} className="flex justify-between items-center border rounded-lg px-3 py-2 text-xs bg-slate-50"><span><strong>{h.tanggal}</strong> - {h.shift} by {h.created_by}</span><button onClick={()=>loadFromHistory('harian',h)} className="border px-3 py-1 rounded-full font-bold">Muat</button></div>)}</div></div>
+              </div>
+            )}
+
+            {activeTab==='bulanan' && (
+              <div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-3"><h2 className="text-[14px] font-bold text-[#0B4F30]">Kendali Bulanan - Rekap Patroli & Pelanggaran (Auto dari Harian)</h2><div className="flex items-center gap-2"><button onClick={()=>autoRekapFullBulan(bulananBulan)} disabled={loading} className="px-3 py-1.5 bg-[#0B4F30] text-white rounded-lg text-[11px] font-bold disabled:opacity-50">🔄 Auto-Rekap dari Harian ({bulananBulan})</button><div className="flex items-center gap-2 text-[11px]">Bulan: <input type="month" value={bulananBulan} onChange={e=>setBulananBulan(e.target.value)} className="border rounded px-2 py-1"/></div></div></div>
+                <div className="text-[10px] bg-[#E7F3EC] border border-[#D6E9DA] p-2 rounded-lg mb-3">💡 Data otomatis terisi dari Form Harian. Setiap kali simpan Harian, klik tombol di atas untuk tarik semua data bulan ini. Tidak perlu input ulang.</div>
+                <div id="bulananPrint" className="overflow-x-auto border rounded-xl print-area"><div className="flex justify-end p-2 no-print"><button onClick={()=>printOnly('bulananPrint')} className="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-[11px] font-bold">🖨️ Cetak Bulanan - Hanya Isi</button></div><table className="w-full border-collapse text-[11px] min-w-[860px]"><thead><tr className="bg-[#0B4F30] text-white"><th className="border border-[#0B4F30] px-2 py-2.5">Tgl</th><th className="border border-[#0B4F30] px-2 py-2.5">Total Patroli</th><th className="border border-[#0B4F30] px-2 py-2.5">Total Pelanggaran</th><th className="border border-[#0B4F30] px-2 py-2.5">Karyawan</th><th className="border border-[#0B4F30] px-2 py-2.5">Pengunjung</th><th className="border border-[#0B4F30] px-2 py-2.5">Pasien/Klg</th><th className="border border-[#0B4F30] px-3 py-2.5 text-left">Lokasi Terbanyak</th><th className="border border-[#0B4F30] px-2 py-2.5">Petugas</th></tr></thead><tbody>{Array.from({length:31}).map((_,i)=>{ const d=i+1; const row=bulananGrid[d]||{}; return <tr key={i} className={i%2===0?'bg-white':'bg-[#FBFFFC]'}><td className="border px-2 py-1 text-center font-medium">{d}</td><td className="border px-1 py-1 bg-slate-50"><input type="number" readOnly value={row.patroli||''} className="w-full bg-slate-100 border rounded text-center" title="Otomatis dari Harian"/></td><td className="border px-1 py-1 bg-slate-50"><input type="number" readOnly value={row.pelanggaran||''} className="w-full bg-slate-100 border rounded text-center font-bold" title="Otomatis dari Harian"/></td><td className="border px-1 py-1"><input type="number" value={row.karyawan||''} onChange={e=>setBulananGrid({...bulananGrid,[d]:{...row,karyawan:e.target.value}})} className="w-full border rounded text-center"/></td><td className="border px-1 py-1"><input type="number" value={row.pengunjung||''} onChange={e=>setBulananGrid({...bulananGrid,[d]:{...row,pengunjung:e.target.value}})} className="w-full border rounded text-center"/></td><td className="border px-1 py-1"><input type="number" value={row.pasien||''} onChange={e=>setBulananGrid({...bulananGrid,[d]:{...row,pasien:e.target.value}})} className="w-full border rounded text-center"/></td><td className="border px-1 py-1 bg-slate-50"><input type="text" readOnly value={row.lokasi||''} className="w-full bg-slate-100 border rounded px-1"/></td><td className="border px-1 py-1 bg-slate-50"><input type="text" readOnly value={row.petugas||''} className="w-full bg-slate-100 border rounded px-1"/></td></tr>;})}</tbody></table></div>
+                <div className="mt-6"><div className="text-[12px] font-bold text-[#0B4F30] mb-2">Riwayat Bulanan ONLINE</div><div className="grid gap-2 max-h-[200px] overflow-y-auto">{bulananList.map(b=><div key={b.id} className="flex justify-between items-center border rounded-lg px-3 py-2 text-xs bg-slate-50"><span><strong>{b.bulan}</strong> by {b.created_by}</span><button onClick={()=>loadFromHistory('bulanan',b)} className="border px-3 py-1 rounded-full font-bold">Muat</button></div>)}</div></div>
+              </div>
+            )}
+
+            {activeTab==='rekap' && (
+              <div>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-2 mb-1"><h2 className="text-[14px] font-bold text-[#0B4F30]">Rekapitulasi Bulanan Per Area & Trend (Auto)</h2><button onClick={()=>autoRekapFullBulan(rekapBulan)} disabled={loading} className="px-3 py-1.5 bg-[#0B4F30] text-white rounded-lg text-[11px] font-bold">🔄 Hitung Rekap Otomatis per Area ({rekapBulan})</button></div>
+                <div className="text-[10px] bg-[#E7F3EC] border border-[#D6E9DA] p-2 rounded-lg mb-3">💡 Rekap per area & minggu otomatis dihitung dari total pelanggar di Form Harian. Minggu 1 = tgl 1-7, Minggu 2 = 8-14, Minggu 3 = 15-21, Minggu 4 = 22-31</div>
+                <div className="flex items-center gap-2 mb-3 text-[11px]">Bulan: <input type="month" value={rekapBulan} onChange={e=>setRekapBulan(e.target.value)} className="border rounded px-2 py-1 bg-white"/></div>
+                <div id="rekapPrint" className="overflow-x-auto border rounded-xl print-area"><div className="flex justify-end p-2 no-print"><button onClick={()=>printOnly('rekapPrint')} className="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-[11px] font-bold">🖨️ Cetak Rekap - Hanya Isi</button></div><table className="w-full border-collapse text-[11px] min-w-[780px]"><thead><tr className="bg-[#0B4F30] text-white"><th rowSpan={2} className="border border-[#0B4F30] px-3 py-2.5 text-left">Area / Lokasi</th><th colSpan={4} className="border border-[#0B4F30] px-2 py-1.5 border-b-0">Minggu Ke- (Total Pelanggar)</th><th rowSpan={2} className="border border-[#0B4F30] px-2 py-2.5">Total Bulan Ini</th><th rowSpan={2} className="border border-[#0B4F30] px-2 py-2.5">Bulan Lalu</th></tr><tr className="bg-[#0B4F30] text-white"><th className="border border-[#0B4F30] px-2 py-1.5 border-t-0">1</th><th className="border border-[#0B4F30] px-2 py-1.5 border-t-0">2</th><th className="border border-[#0B4F30] px-2 py-1.5 border-t-0">3</th><th className="border border-[#0B4F30] px-2 py-1.5 border-t-0">4</th></tr></thead><tbody>{locations.map((loc,i)=>{ const row=rekapGrid[loc]||{}; return <tr key={i} className={i%2===0?'bg-white':'bg-[#FBFFFC]'}><td className="border px-3 py-2 font-medium flex items-center gap-1.5"><Icon path={icMapPin} className="w-3 h-3 text-[#0B4F30]"/>{loc}</td><td className="border px-1 py-1 bg-slate-50"><input type="number" readOnly value={row.m1||''} className="w-full bg-slate-100 border rounded text-center"/></td><td className="border px-1 py-1 bg-slate-50"><input type="number" readOnly value={row.m2||''} className="w-full bg-slate-100 border rounded text-center"/></td><td className="border px-1 py-1 bg-slate-50"><input type="number" readOnly value={row.m3||''} className="w-full bg-slate-100 border rounded text-center"/></td><td className="border px-1 py-1 bg-slate-50"><input type="number" readOnly value={row.m4||''} className="w-full bg-slate-100 border rounded text-center"/></td><td className="border px-1 py-1 bg-amber-50"><input type="number" readOnly value={row.totalBulanIni||''} className="w-full bg-amber-100 border rounded text-center font-bold"/></td><td className="border px-1 py-1"><input type="number" value={row.bulanLalu||''} onChange={e=>setRekapGrid({...rekapGrid,[loc]:{...row,bulanLalu:e.target.value}})} className="w-full border rounded text-center"/></td></tr>;})}</tbody></table></div>
+                <div className="mt-6"><div className="text-[12px] font-bold text-[#0B4F30] mb-2">Riwayat Rekap ONLINE</div><div className="grid gap-2 max-h-[200px] overflow-y-auto">{rekapList.map(r=><div key={r.id} className="flex justify-between items-center border rounded-lg px-3 py-2 text-xs bg-slate-50"><span><strong>{r.bulan}</strong> by {r.created_by}</span><button onClick={()=>loadFromHistory('rekap',r)} className="border px-3 py-1 rounded-full font-bold">Muat</button></div>)}</div></div>
+              </div>
+            )}
+
+            {activeTab==='laporan' && (
+              <div id="laporanPrint" className="max-w-[900px] mx-auto print-area"><div className="flex justify-between gap-2 mb-4 no-print"><button onClick={generateLaporanOtomatis} className="px-4 py-2 bg-[#0B4F30] text-white rounded-lg text-xs font-bold">✨ Buat Contoh Redaksi dari Data (Bisa Diedit)</button><button onClick={()=>handlePrint('laporan')} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold">🖨️ Cetak Laporan</button></div><div className="text-center border-b pb-4 mb-5"><div className="text-[14px] font-bold text-[#0B4F30]">LAPORAN BULANAN PELAKSANAAN KTR</div><div className="mt-2 text-[12px]">Bulan: <input type="month" value={lapBulan} onChange={e=>setLapBulan(e.target.value)} className="border-b bg-transparent outline-none"/></div></div><div className="space-y-4 text-[12px]"><section className="border rounded-lg p-3"><h3 className="font-bold text-[#0B4F30] mb-2">I. RINGKASAN PELAKSANAAN</h3><textarea value={lapRingkasan} onChange={e=>setLapRingkasan(e.target.value)} className="w-full h-24 border rounded p-2"/></section><div className="grid md:grid-cols-2 gap-4"><section className="border rounded-lg p-3"><h3 className="font-bold text-[#0B4F30] mb-2">II. KENDALA & SOLUSI</h3><textarea value={lapKendala} onChange={e=>setLapKendala(e.target.value)} className="w-full h-32 border rounded p-2"/></section><section className="border rounded-lg p-3 bg-[#F2F8F3]"><h3 className="font-bold text-[#0B4F30] mb-2">III. REKOMENDASI BULAN DEPAN</h3><textarea value={lapRekomendasi} onChange={e=>setLapRekomendasi(e.target.value)} className="w-full h-32 border rounded p-2 bg-white"/></section></div><div className="grid grid-cols-3 gap-6 pt-10 text-center"><div><div className="h-16"></div><input type="text" value={lapPelapor} onChange={e=>setLapPelapor(e.target.value)} placeholder="Nama Pelapor" className="text-center w-full border-t bg-transparent outline-none"/>Tim KTR</div><div><div className="h-16"></div><input type="text" value={lapMengetahui} onChange={e=>setLapMengetahui(e.target.value)} placeholder="Mengetahui" className="text-center w-full border-t bg-transparent outline-none"/>Kabid</div><div><div className="h-16"></div><input type="text" value={lapDirektur} onChange={e=>setLapDirektur(e.target.value)} placeholder="Direktur" className="text-center w-full border-t font-bold bg-transparent outline-none"/>Direktur</div></div></div></div>
+            )}
+
+            {activeTab==='pendukung' && (
+              <div>
+                <div className="flex gap-2 mb-5">{["checklist","ba","teguran"].map(st=><button key={st} onClick={()=>setSubTab(st)} className={`px-4 py-2 rounded-lg text-[12px] font-semibold border ${subTab===st?'bg-[#0B4F30] text-white':'bg-white'}`}>{st==="checklist"?"Checklist Sarana":st==="ba"?"Berita Acara":"Surat Teguran"}</button>)}</div>
+                {subTab==="checklist" && <div id="checklistPrint" className="border border-slate-200 rounded-xl overflow-hidden print-area bg-white"><div className="flex justify-end p-2 no-print"><button onClick={()=>printOnly('checklistPrint')} className="px-3 py-1.5 bg-slate-800 text-white rounded-lg text-[11px] font-bold">🖨️ Cetak Checklist (Isi Saja)</button></div><table className="w-full text-[12px]"><thead><tr className="bg-[#0B4F30] text-white"><th className="px-3 py-2.5 text-center">No</th><th className="text-left px-3 py-2.5">Sarana KTR</th><th className="text-left px-3 py-2.5">Standar</th><th className="text-center px-3 py-2.5">Tersedia?</th><th className="text-center px-3 py-2.5">Kondisi</th><th className="text-left px-3 py-2.5">Tindak Lanjut / Keterangan</th></tr></thead><tbody>{defaultChecklist.map(r=>{const cg=checklistGrid[r.no]||{tersedia:'Ya',kondisi:'Baik',catatan:''}; return (<tr key={r.no} className="border-t border-slate-200"><td className="px-3 py-2.5 text-center">{r.no}</td><td className="px-3 py-2.5 font-medium">{r.sarana}</td><td className="px-3 py-2.5 text-slate-500 text-[11px]">{r.standar}</td><td className="px-2 py-2"><select value={cg.tersedia} onChange={e=>setChecklistGrid({...checklistGrid,[r.no]:{...cg,tersedia:e.target.value}})} className="w-full border border-slate-300 rounded px-1 py-1 text-center bg-white"><option>Ya</option><option>Tidak</option></select></td><td className="px-2 py-2"><select value={cg.kondisi} onChange={e=>setChecklistGrid({...checklistGrid,[r.no]:{...cg,kondisi:e.target.value}})} className="w-full border border-slate-300 rounded px-1 py-1 text-center bg-white"><option>Baik</option><option>Rusak</option><option>Perlu Perbaikan</option></select></td><td className="px-2 py-2"><input type="text" value={cg.catatan} onChange={e=>setChecklistGrid({...checklistGrid,[r.no]:{...cg,catatan:e.target.value}})} placeholder="Catatan..." className="w-full border border-slate-300 rounded px-2 py-1 bg-white" /></td></tr>)})}</tbody></table></div>}
+                {subTab==="ba" && <div id="baPrint"><div className="flex justify-end mb-3 no-print"><button onClick={()=>printOnly('baContent')} disabled={!can(user,'cetak_BA')} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold disabled:opacity-40">🖨️ Cetak BA - Hanya Isi (Tanpa Header/Judul)</button></div><div id="baContent" className="max-w-[800px] mx-auto border border-slate-300 rounded-xl p-6 md:p-8 bg-[#FFFFFE] print-area"><div className="text-center mb-6"><div className="text-[14px] font-bold tracking-wide">BERITA ACARA PELANGGARAN KTR</div><div className="flex items-center justify-center gap-2 text-[12px] mt-2">Nomor: BA-KTR / <input type="text" value={baNomor} onChange={e=>setBaNomor(e.target.value)} className="border-b border-slate-400 bg-transparent w-32 text-center outline-none" /> / 20__</div></div><div className="text-[12px] space-y-4"><p>Pada hari ini, tanggal <input type="date" value={baTgl} onChange={e=>setBaTgl(e.target.value)} className="border-b border-slate-400 bg-transparent outline-none" /> bertempat di RSJD Atma Husada Mahakam, kami Tim Penegakan KTR:</p><div className="grid grid-cols-2 gap-4"><div>1. Nama: <input type="text" value={baPetugas1} onChange={e=>setBaPetugas1(e.target.value)} className="border-b border-slate-400 bg-transparent w-full mt-1 outline-none" /></div><div>Jabatan: <input type="text" value={baJab1} onChange={e=>setBaJab1(e.target.value)} className="border-b border-slate-400 bg-transparent w-full mt-1 outline-none" /></div><div>2. Nama: <input type="text" value={baPetugas2} onChange={e=>setBaPetugas2(e.target.value)} className="border-b border-slate-400 bg-transparent w-full mt-1 outline-none" /></div><div>Jabatan: <input type="text" value={baJab2} onChange={e=>setBaJab2(e.target.value)} className="border-b border-slate-400 bg-transparent w-full mt-1 outline-none" /></div></div><p>Telah menemukan pelanggaran KTR yang dilakukan oleh:</p><div className="border border-slate-200 rounded p-4 space-y-3"><div className="flex gap-4 items-center"><div className="w-32">Nama Pelanggar</div>: <input type="text" value={baPelanggar} onChange={e=>setBaPelanggar(e.target.value)} className="border-b border-slate-400 bg-transparent flex-1 outline-none" /></div><div className="flex gap-4 items-center"><div className="w-32">Status</div>: <select value={baStatus} onChange={e=>setBaStatus(e.target.value)} className="border border-slate-300 rounded px-2 py-1 bg-white"><option>Karyawan</option><option>Pengunjung</option><option>Pasien/Keluarga</option></select></div><div className="flex gap-4 items-center"><div className="w-32">Uraian Pelanggaran</div>: <input type="text" value={baUraian} onChange={e=>setBaUraian(e.target.value)} className="border-b border-slate-400 bg-transparent flex-1 outline-none" placeholder="Membawa asbak / merokok di area..." /></div><div className="flex gap-4 items-center"><div className="w-32">Tindak Lanjut</div>: <input type="text" value={baTindak} onChange={e=>setBaTindak(e.target.value)} className="border-b border-slate-400 bg-transparent flex-1 outline-none" placeholder="Edukasi dan teguran lisan..." /></div></div><div className="grid grid-cols-2 md:grid-cols-3 gap-6 pt-10 text-center"><div><div className="h-16"></div><input type="text" placeholder="Nama Pelanggar" className="text-center w-full bg-transparent border-t border-slate-400 pt-1 outline-none" /><div className="text-[10px]">Pelanggar</div></div><div><div className="h-16"></div><input type="text" placeholder="Nama Petugas 1" className="text-center w-full bg-transparent border-t border-slate-400 pt-1 outline-none" /><div className="text-[10px]">Petugas KTR 1</div></div><div><div className="h-16"></div><input type="text" placeholder="Nama Petugas 2" className="text-center w-full bg-transparent border-t border-slate-400 pt-1 outline-none" /><div className="text-[10px]">Petugas KTR 2 / Saksi</div></div></div></div></div></div>}
+                {subTab==="teguran" && <div id="teguranPrint"><div className="flex justify-end mb-3 no-print"><button onClick={()=>printOnly('teguranContent')} disabled={!can(user,'cetak_Teguran')} className="px-4 py-2 bg-slate-800 text-white rounded-lg text-xs font-bold disabled:opacity-40">🖨️ Cetak Teguran - Hanya Isi</button></div><div id="teguranContent" className="max-w-[800px] mx-auto border border-slate-300 rounded-xl p-6 md:p-8 bg-white print-area"><div className="flex justify-between items-start mb-6 text-[12px]"><div className="font-bold">RSJD ATMA HUSADA MAHAKAM<br/><span className="font-normal">Tim Penegakan KTR</span></div><div className="text-right">Samarinda, <input type="date" value={tgTglCetak} onChange={e=>setTgTglCetak(e.target.value)} className="border-b border-slate-400 bg-transparent outline-none" /><br/>No: <input type="text" value={tgNomor} onChange={e=>setTgNomor(e.target.value)} className="border-b border-slate-400 bg-transparent w-32 text-right outline-none" placeholder=".... /KTR/...." /></div></div><div className="text-center font-bold text-[14px] flex items-center justify-center gap-2 mb-6"><span className="text-amber-600">⚠</span> SURAT TEGURAN PELANGGARAN KTR</div><div className="text-[12px] space-y-4"><div>Kepada Yth,<br/>Sdr/i. <input type="text" value={tgNama} onChange={e=>setTgNama(e.target.value)} className="border-b border-slate-400 bg-transparent font-bold w-64 outline-none" /><br/>Di - Tempat</div><p className="text-justify">Sehubungan dengan pelaksanaan Peraturan Kawasan Tanpa Rokok (KTR) di lingkungan RSJD Atma Husada Mahakam berdasarkan Perda Kaltim No.5/2017, bersama ini kami sampaikan teguran atas pelanggaran:</p><div className="border border-amber-200 bg-amber-50 rounded-lg p-4 space-y-2"><div className="flex gap-2">Hari/Tgl: <input type="text" value={tgHariTgl} onChange={e=>setTgHariTgl(e.target.value)} className="border-b border-slate-400 bg-transparent flex-1 outline-none" /> Jam: <input type="time" value={tgJam} onChange={e=>setTgJam(e.target.value)} className="border-b border-slate-400 bg-transparent outline-none" /></div><div className="flex gap-2">Lokasi: <input type="text" value={tgLokasi} onChange={e=>setTgLokasi(e.target.value)} className="border-b border-slate-400 bg-transparent flex-1 outline-none" /></div><div className="flex gap-2 items-center">Pelanggaran: <input type="text" value={tgPelanggaran} onChange={e=>setTgPelanggaran(e.target.value)} className="border-b border-slate-400 bg-transparent flex-1 outline-none" placeholder="Contoh: Merokok di area parkir" /></div></div><p className="text-justify">Kami harapkan Saudara dapat mematuhi peraturan KTR demi kesehatan bersama dan kenyamanan pasien. Apabila masih melakukan pelanggaran, akan dikenakan sanksi sesuai ketentuan yang berlaku.</p><div className="flex justify-end pt-8"><div className="text-center text-[12px]">Ketua Tim Penegakan KTR,<br/><div className="h-20"></div><input type="text" value={tgKetua} onChange={e=>setTgKetua(e.target.value)} className="text-center w-48 bg-transparent border-t border-slate-400 pt-1 outline-none" placeholder="Nama Lengkap & NIP" /></div></div></div></div></div>}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-[0_-4px_15px_rgba(0,0,0,0.08)] z-40">
+        <div className="max-w-[1280px] mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs"><span className={`w-2 h-2 rounded-full ${dbStatus==='connected'?'bg-emerald-500 animate-pulse':'bg-red-500'}`}></span>{dbStatus==='connected'?'ONLINE - Database Cloud Aktif':'OFFLINE - '+dbErrorDetail} <span className="hidden md:inline-flex ml-2 text-[10px] bg-[#F3FBF5] border border-[#D6E9DA] px-2 py-1 rounded-full">KEY Embedded - Tanpa input ulang</span></div>
+          <div className="flex gap-2 w-full md:w-auto">
+            <button onClick={muatDataSupabase} disabled={loading||dbStatus!=='connected'} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl border text-sm font-bold disabled:opacity-40"><Icon path={icCloud} className="w-4 h-4"/>{loading?'Memuat...':'Muat Data'}</button>
+            <button onClick={simpanDataSupabase} disabled={loading||dbStatus!=='connected'} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-[#0B4F30] text-white text-sm font-bold shadow-lg disabled:opacity-40"><Icon path={icSave} className="w-4 h-4"/>{loading?'Menyimpan...':'Simpan ke Database'}</button>
+          </div>
+        </div>
+      </div>
+
+      {showChangePass&&<div className="fixed inset-0 bg-black/40 z-[100] flex items-center justify-center p-4"><div className="bg-white rounded-[24px] p-6 w-full max-w-md"><div className="font-bold text-[#0B4F30] mb-1 flex items-center gap-2"><Icon path={icLock} className="w-5 h-5"/>{changePassTarget?`Ganti Password: ${changePassTarget}`:'Ganti Password Saya'}</div><p className="text-xs text-slate-500 mb-4">Fitur untuk role editor.</p><div className="space-y-3">{(!changePassTarget||changePassTarget===user?.username)&&<input type="password" value={oldPassInput} onChange={e=>setOldPassInput(e.target.value)} placeholder="Password Lama" className="w-full border rounded-xl px-3 py-2.5"/>}<input type="password" value={newPassInput} onChange={e=>setNewPassInput(e.target.value)} placeholder="Password Baru" className="w-full border rounded-xl px-3 py-2.5"/><input type="password" value={confirmPassInput} onChange={e=>setConfirmPassInput(e.target.value)} placeholder="Konfirmasi" className="w-full border rounded-xl px-3 py-2.5"/></div><div className="flex gap-2 mt-6"><button onClick={()=>setShowChangePass(false)} className="flex-1 border rounded-xl py-2.5">Batal</button><button onClick={handleChangePassword} className="flex-1 bg-[#0B4F30] text-white rounded-xl py-2.5">Simpan</button></div></div></div>}
+      {toast&&<div className={`fixed bottom-28 left-1/2 -translate-x-1/2 px-5 py-3 rounded-xl text-sm font-bold shadow-2xl z-[200] max-w-[90%] text-center ${toast.type==='error'?'bg-red-600 text-white':toast.type==='success'?'bg-[#0B4F30] text-white':'bg-amber-500 text-white'}`}>{toast.msg}</div>}
     </div>
-  `).join('');
+  );
 }
-async function togglePublish(id, newState){
-  if(!supabaseClient) return;
-  const {error}=await supabaseClient.from('dok_pendukung').update({is_published:newState}).eq('id',id);
-  if(error) alert(error.message); else loadDok();
-}
-async function deleteDok(id){
-  if(!confirm('Hapus dokumen ini?')) return;
-  if(!supabaseClient) return;
-  const {error}=await supabaseClient.from('dok_pendukung').delete().eq('id',id);
-  if(error) alert(error.message); else loadDok();
-}
-
-// MASTER KUSTOM
-async function loadMaster(){
-  if(!supabaseClient){renderMasterLists(); return;}
-  try{
-    const {data:lok} = await supabaseClient.from('mst_lokasi').select('*').order('name');
-    if(lok && lok.length){mstLokasi=lok;} else {
-      // Jika kosong, auto seed default ke Supabase (bukan dummy transaksi)
-      if(confirm('Master lokasi kosong. Seed 12 lokasi default ke Supabase?')){
-        await supabaseClient.from('mst_lokasi').insert(defaultLokasi);
-        const {data:lok2}=await supabaseClient.from('mst_lokasi').select('*').order('name');
-        if(lok2) mstLokasi=lok2;
-      }
-    }
-    const {data:sar} = await supabaseClient.from('mst_sarana').select('*').order('name');
-    if(sar && sar.length){mstSarana=sar;} else {
-      if(confirm('Master sarana kosong. Seed 10 sarana default?')){
-        await supabaseClient.from('mst_sarana').insert(defaultSarana);
-        const {data:sar2}=await supabaseClient.from('mst_sarana').select('*').order('name');
-        if(sar2) mstSarana=sar2;
-      }
-    }
-  }catch(e){console.error(e)}
-  renderMasterLists(); renderHarianRows(); renderBulananRows();
-}
-function renderMasterLists(){
-  document.getElementById('lokasiList').innerHTML = mstLokasi.length? mstLokasi.map(l=>`<div class="flex items-center justify-between border-b py-1.5 group"><input value="${l.name}" onchange="editLokasi('${l.id}', this.value)" class="flex-1 bg-transparent border border-transparent hover:border-[#DBEAFE] rounded px-1 h-7 text-[12px]"><span class="text-[10px] text-slate-400 mx-2">${l.type||''}</span><button onclick="deleteLokasi('${l.id}')" class="opacity-0 group-hover:opacity-100 text-red-500 px-1">✕</button></div>`).join('') : '<div class="text-slate-400 text-[12px]">Belum ada lokasi - tambah di bawah (tanpa dummy)</div>';
-  document.getElementById('saranaList').innerHTML = mstSarana.length? mstSarana.map(s=>`<div class="flex items-center justify-between border-b py-1.5 group"><input value="${s.name}" onchange="editSarana('${s.id}', this.value)" class="flex-1 bg-transparent border border-transparent hover:border-[#DBEAFE] rounded px-1 h-7 text-[12px]"><button onclick="deleteSarana('${s.id}')" class="opacity-0 group-hover:opacity-100 text-red-500 px-1">✕</button></div>`).join('') : '<div class="text-slate-400 text-[12px]">Belum ada sarana - tambah di bawah</div>';
-}
-async function addLokasi(){
-  const v=document.getElementById('newLok').value.trim(), t=document.getElementById('newLokType').value.trim()||'Publik';
-  if(!v) return;
-  if(supabaseClient && !mstLokasi[0]?.id?.startsWith('TMP_')){
-    const {data, error}=await supabaseClient.from('mst_lokasi').insert({name:v, type:t}).select().single();
-    if(error){alert(error.message); return;} mstLokasi.push(data);
-  }else{mstLokasi.push({id:'TMP_L'+Date.now(), name:v, type:t});}
-  document.getElementById('newLok').value=''; renderMasterLists(); renderHarianRows();
-}
-async function editLokasi(id, newName){
-  if(!newName.trim()) return;
-  if(supabaseClient && !id.startsWith('TMP_')){
-    const {error}=await supabaseClient.from('mst_lokasi').update({name:newName.trim()}).eq('id',id);
-    if(error){alert(error.message); return;}
-  }
-  const idx=mstLokasi.findIndex(l=>l.id===id); if(idx>=0) mstLokasi[idx].name=newName.trim();
-  renderHarianRows();
-}
-async function deleteLokasi(id){
-  if(!confirm('Hapus lokasi ini? Data harian yang pakai lokasi ini akan jadi lokasi_text (tidak hilang).')) return;
-  if(supabaseClient && !id.startsWith('TMP_')){
-    const {error}=await supabaseClient.from('mst_lokasi').delete().eq('id',id);
-    if(error){alert(error.message); return;}
-  }
-  mstLokasi=mstLokasi.filter(l=>l.id!==id); renderMasterLists(); renderHarianRows();
-}
-async function addSarana(){
-  const v=document.getElementById('newSar').value.trim(); if(!v) return;
-  if(supabaseClient && !mstSarana[0]?.id?.startsWith('TMP_')){
-    const {data, error}=await supabaseClient.from('mst_sarana').insert({name:v}).select().single();
-    if(error){alert(error.message); return;} mstSarana.push(data);
-  }else{mstSarana.push({id:'TMP_S'+Date.now(), name:v});}
-  document.getElementById('newSar').value=''; renderMasterLists(); renderBulananRows();
-}
-async function editSarana(id, newName){
-  if(!newName.trim()) return;
-  if(supabaseClient && !id.startsWith('TMP_')){
-    const {error}=await supabaseClient.from('mst_sarana').update({name:newName.trim()}).eq('id',id);
-    if(error){alert(error.message); return;}
-  }
-  const idx=mstSarana.findIndex(s=>s.id===id); if(idx>=0) mstSarana[idx].name=newName.trim();
-  renderBulananRows();
-}
-async function deleteSarana(id){
-  if(!confirm('Hapus sarana ini?')) return;
-  if(supabaseClient && !id.startsWith('TMP_')){
-    const {error}=await supabaseClient.from('mst_sarana').delete().eq('id',id);
-    if(error){alert(error.message); return;}
-  }
-  mstSarana=mstSarana.filter(s=>s.id!==id); renderMasterLists(); renderBulananRows();
-}
-
-initSupabase();
-document.getElementById('h_tanggal').valueAsDate=new Date();
-document.getElementById('b_tgl').valueAsDate=new Date();
-document.getElementById('d_tgl').valueAsDate=new Date();
-document.getElementById('b_bulan').value=new Date().getMonth()+1;
-document.getElementById('b_tahun').value=new Date().getFullYear();
-document.getElementById('l_bulan').value=new Date().getMonth()+1;
-document.getElementById('l_tahun').value=new Date().getFullYear();
-addHarianRow();
+const root=ReactDOM.createRoot(document.getElementById('root'));
+root.render(<App/>);
 </script>
 </body>
 </html>
